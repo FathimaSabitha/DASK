@@ -122,12 +122,18 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# Email Configuration (Development)
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 DEFAULT_FROM_EMAIL = 'Brightloop <noreply@brightloop.com>'
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+
+# DEFAULT_FROM_EMAIL = 'Brightloop <noreply@brightloop.com>'
+# MAILERS = {
+#     'default': {
+#         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+#     },
+# }
 
 
 LOGIN_URL = '/login/'
