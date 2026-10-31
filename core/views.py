@@ -8,6 +8,11 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 
@@ -15,7 +20,9 @@ from .forms import LoginForm, RegistrationForm, StaffCreationForm, CustomerUpdat
 from .models import Product, ProductVariant, CustomerProfile
 
 
-# PRODUCT CREATION
+
+from .forms import LoginForm
+
 
 def product_create(request):
     """Create a product in the catalogue along with optional variants."""
