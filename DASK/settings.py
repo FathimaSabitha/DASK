@@ -118,7 +118,11 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
-# Email
+# Auth redirects
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'product_userlist'
+LOGOUT_REDIRECT_URL = 'login'
+
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

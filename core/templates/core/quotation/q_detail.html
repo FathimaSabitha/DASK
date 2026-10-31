@@ -1,0 +1,820 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View official commercial quotation {{ quotation.quotation_number }} in Brightloop.">
+    <title>{{ quotation.quotation_number }} | Quotation | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <style>
+        .detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .detail-header h1 {
+            margin: 0;
+            font-size: clamp(1.6rem, 2.8vw, 2rem);
+            letter-spacing: -.035em;
+            color: var(--navy);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 24px;
+            padding: 14px 20px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        .action-bar-left, .action-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Quotation Paper Sheet */
+        .quotation-sheet {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+            padding: 44px 48px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .sheet-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 32px;
+            padding-bottom: 30px;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .company-info h2 {
+            margin: 0 0 6px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: -0.02em;
+        }
+
+        .company-info p {
+            margin: 3px 0;
+            font-size: 0.8rem;
+            color: var(--slate);
+            line-height: 1.5;
+        }
+
+        .quote-meta-block {
+            text-align: right;
+        }
+
+        .quote-title {
+            font-size: 1.5rem;
+            font-weight: 850;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin: 0 0 8px;
+        }
+
+        .quote-meta-row {
+            font-size: 0.82rem;
+            margin: 4px 0;
+            color: var(--slate-dark);
+        }
+
+        .quote-meta-row strong {
+            color: var(--navy);
+            margin-left: 6px;
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 750;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .badge-draft { background: #f1f5f9; color: var(--slate-dark); border: 1px solid #cbd5e1; }
+        .badge-sent { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .badge-accepted { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-rejected { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-expired { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-converted { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+
+        /* Parties Panel */
+        .parties-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
+            padding: 28px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .party-box h3 {
+            margin: 0 0 10px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--slate);
+        }
+
+        .party-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin: 0 0 4px;
+        }
+
+        .party-detail {
+            font-size: 0.82rem;
+            color: var(--slate-dark);
+            margin: 3px 0;
+            line-height: 1.5;
+        }
+
+        /* Notice Banner */
+        .sheet-banner {
+            margin-top: 24px;
+            padding: 12px 18px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.84rem;
+        }
+
+        .sheet-banner-expired {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+
+        .sheet-banner-converted {
+            background: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            color: #5b21b6;
+        }
+
+        .sheet-banner-accepted {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        /* Items Table */
+        .items-section {
+            padding: 28px 0 16px;
+        }
+
+        .sheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+        }
+
+        .sheet-table th {
+            text-transform: uppercase;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: var(--slate);
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-bottom: 1.5px solid var(--border);
+            text-align: left;
+        }
+
+        .sheet-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--navy);
+            vertical-align: top;
+        }
+
+        .sheet-table th.col-num, .sheet-table td.col-num {
+            text-align: center;
+            width: 44px;
+            color: var(--slate);
+        }
+
+        .sheet-table th.col-qty, .sheet-table td.col-qty {
+            text-align: center;
+            width: 60px;
+        }
+
+        .sheet-table th.col-price, .sheet-table td.col-price,
+        .sheet-table th.col-total, .sheet-table td.col-total {
+            text-align: right;
+            width: 130px;
+        }
+
+        .item-title {
+            font-weight: 750;
+            color: var(--navy);
+            margin-bottom: 3px;
+        }
+
+        .item-subtitle {
+            font-size: 0.74rem;
+            color: var(--slate);
+        }
+
+        .item-plan-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: #eff6ff;
+            color: var(--blue-dark);
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+
+        /* Totals Block */
+        .sheet-footer-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 32px;
+            padding-top: 24px;
+            align-items: start;
+        }
+
+        .terms-block h4 {
+            margin: 0 0 8px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--slate);
+        }
+
+        .terms-block ol, .terms-block p {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 0.78rem;
+            color: var(--slate);
+            line-height: 1.6;
+        }
+
+        .custom-notes {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid var(--blue);
+            font-size: 0.8rem;
+            color: var(--slate-dark);
+        }
+
+        .totals-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+        }
+
+        .total-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.84rem;
+            color: var(--slate-dark);
+        }
+
+        .total-row strong {
+            color: var(--navy);
+            font-weight: 750;
+        }
+
+        .grand-total-row {
+            border-top: 2px solid var(--border);
+            margin-top: 8px;
+            padding-top: 12px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--navy);
+        }
+
+        .grand-total-row .amount {
+            color: var(--blue);
+            font-size: 1.25rem;
+        }
+
+        /* Signature Row */
+        .signatures-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 48px;
+            padding-top: 36px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .signature-box {
+            border-top: 1px solid #cbd5e1;
+            padding-top: 10px;
+            text-align: center;
+        }
+
+        .signature-box .role-label {
+            font-size: 0.75rem;
+            font-weight: 750;
+            color: var(--slate);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .signature-box .sign-name {
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-top: 4px;
+        }
+
+        /* Action Buttons */
+        .btn-status {
+            padding: 7px 13px;
+            border-radius: 7px;
+            font-size: 0.78rem;
+            font-weight: 720;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-send {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+        .btn-send:hover { background: #dbeafe; }
+
+        .btn-accept {
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .btn-accept:hover { background: #dcfce7; }
+
+        .btn-reject {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        .btn-reject:hover { background: #fee2e2; }
+
+        .btn-convert-lg {
+            background: #7c3aed;
+            color: #ffffff;
+            border: 1px solid #6d28d9;
+            box-shadow: 0 1px 2px rgba(124, 58, 237, 0.25);
+        }
+        .btn-convert-lg:hover {
+            background: #6d28d9;
+        }
+
+        /* Alerts */
+        .alert-success {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 9px;
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+            font-size: .82rem;
+            font-weight: 650;
+        }
+
+        .alert-danger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 9px;
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            font-size: .82rem;
+            font-weight: 650;
+        }
+
+        .alert-warning {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 9px;
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+            font-size: .82rem;
+            font-weight: 650;
+        }
+
+        .alert-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 9px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            font-size: .82rem;
+            font-weight: 650;
+        }
+
+        /* PRINT STYLESHEET */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+            .sidebar, .topbar, .action-bar, .breadcrumbs, .detail-header,
+            .topbar-actions, .alert-success, .alert-danger, .alert-warning, .alert-info {
+                display: none !important;
+            }
+            .app-shell {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .page-content {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .quotation-sheet {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            .sheet-table th {
+                background: #f1f5f9 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .badge {
+                border: 1px solid #64748b !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .quotation-sheet {
+                padding: 24px 20px;
+            }
+            .sheet-top {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .quote-meta-block {
+                text-align: left;
+            }
+            .parties-panel {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .sheet-footer-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'product_list' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="#"><span class="nav-icon">⌂</span>Overview</a>
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link" href="{% url 'product_list' %}"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+            <p class="nav-label">Revenue</p>
+            <a class="nav-link" href="#"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link active" href="{% url 'quotation_list' %}" aria-current="page"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="#"><span class="nav-icon">◴</span>Subscriptions</a>
+        </nav>
+        <div class="account">
+            <span class="avatar" aria-hidden="true">AD</span>
+            <span><strong>{{ request.user.username|default:"Admin User" }}</strong><small>{% if is_internal %}Staff / Admin{% else %}Customer{% endif %}</small></span>
+            <button class="more-button" type="button" aria-label="Account options">•••</button>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation" aria-expanded="false">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'quotation_list' %}">Quotations</a>
+                <span>/</span>
+                <strong>{{ quotation.quotation_number }}</strong>
+            </nav>
+            <div class="topbar-actions">
+                <button class="utility-button" type="button" aria-label="Help">?</button>
+                <button class="utility-button" type="button" aria-label="Notifications">♧<span class="notification-dot"></span></button>
+            </div>
+        </header>
+
+        <main class="page-content">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="{% if 'error' in message.tags %}alert-danger{% elif 'warning' in message.tags %}alert-warning{% elif 'info' in message.tags %}alert-info{% else %}alert-success{% endif %}" role="status">
+                        <span aria-hidden="true">{% if 'error' in message.tags %}!{% else %}✓{% endif %}</span>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Interactive Action Bar -->
+            <div class="action-bar" role="toolbar" aria-label="Quotation controls">
+                <div class="action-bar-left">
+                    <a class="button button-secondary" href="{% url 'quotation_list' %}">
+                        ← Back to Quotations
+                    </a>
+                    <button type="button" class="button button-secondary" onclick="window.print();" aria-label="Print or export PDF">
+                        ⎙ Print / PDF
+                    </button>
+                </div>
+                
+                <div class="action-bar-right">
+                    {% if is_internal %}
+                        <!-- Status transition controls -->
+                        {% if quotation.status == 'draft' %}
+                            <form method="POST" action="{% url 'quotation_status_action' quotation.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="send">
+                                <button type="submit" class="btn-status btn-send" onclick="return confirm('Send this quotation to the customer?');">
+                                    ✉ Mark as Sent
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        {% if quotation.status == 'draft' or quotation.status == 'sent' %}
+                            <form method="POST" action="{% url 'quotation_status_action' quotation.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="accept">
+                                <button type="submit" class="btn-status btn-accept" onclick="return confirm('Confirm customer acceptance of this proposal?');">
+                                    ✓ Mark as Accepted
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{% url 'quotation_status_action' quotation.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn-status btn-reject" onclick="return confirm('Mark this proposal as rejected?');">
+                                    ✕ Mark as Rejected
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        <!-- Quotation Conversion to Subscription (FR-22) -->
+                        {% if quotation.is_eligible_for_conversion %}
+                            <form method="POST" action="{% url 'quotation_convert' quotation.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="button btn-convert-lg" onclick="return confirm('Convert this accepted quotation into an active subscription? This will provision subscriptions and lock further quotation edits.');">
+                                    ★ Convert to Subscription (FR-22)
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Printable Quotation Sheet -->
+            <article class="quotation-sheet" aria-label="Official Commercial Quotation">
+                <!-- Header / Letterhead -->
+                <header class="sheet-top">
+                    <div class="company-info">
+                        <h2>Brightloop Technologies Pvt. Ltd.</h2>
+                        <p>100 Innovation Boulevard, Tech Park, Phase II</p>
+                        <p>Bengaluru, Karnataka 560100, India</p>
+                        <p><strong>GSTIN:</strong> 29AAACB1234F1Z5 &nbsp;|&nbsp; <strong>CIN:</strong> U72200KA2024PTC123456</p>
+                        <p><strong>Email:</strong> billing@brightloop.io &nbsp;|&nbsp; <strong>Phone:</strong> +91 (080) 4567-8900</p>
+                    </div>
+
+                    <div class="quote-meta-block">
+                        <div class="quote-title">Quotation</div>
+                        <div class="quote-meta-row">Proposal No: <strong>{{ quotation.quotation_number }}</strong></div>
+                        <div class="quote-meta-row">Issue Date: <strong>{{ quotation.issue_date|date:"d M Y" }}</strong></div>
+                        <div class="quote-meta-row">Valid Until: <strong>{{ quotation.valid_until|date:"d M Y" }}</strong></div>
+                        <div class="quote-meta-row" style="margin-top:8px;">
+                            Status: 
+                            <span class="badge badge-{{ quotation.status }}">
+                                {{ quotation.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Status Advisory Callout -->
+                {% if quotation.is_expired %}
+                    <div class="sheet-banner sheet-banner-expired">
+                        <span aria-hidden="true" style="font-size:1.1rem; font-weight:bold;">⚠</span>
+                        <div>
+                            <strong>Quotation Expired:</strong> This price proposal reached its validity date on {{ quotation.valid_until|date:"d M Y" }} (FR-21). Commercial terms and subscription conversion may require re-issuance.
+                        </div>
+                    </div>
+                {% elif quotation.converted_subscription %}
+                    <div class="sheet-banner sheet-banner-converted">
+                        <span aria-hidden="true" style="font-size:1.1rem; font-weight:bold;">★</span>
+                        <div>
+                            <strong>Converted to Subscription (FR-22):</strong> Active agreement linked as <strong>{{ quotation.converted_subscription.subscription_number }}</strong> (Status: {{ quotation.converted_subscription.get_status_display }}).
+                        </div>
+                    </div>
+                {% elif quotation.status == 'accepted' %}
+                    <div class="sheet-banner sheet-banner-accepted">
+                        <span aria-hidden="true" style="font-size:1.1rem; font-weight:bold;">✓</span>
+                        <div>
+                            <strong>Customer Accepted:</strong> This proposal is confirmed and ready for subscription provisioning.
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Recipient & Internal Details -->
+                <section class="parties-panel" aria-label="Parties details">
+                    <div class="party-box">
+                        <h3>Customer / Prepared For</h3>
+                        <div class="party-name">{{ quotation.customer.name }}</div>
+                        {% if quotation.customer.company_name %}
+                            <div class="party-detail"><strong>Company:</strong> {{ quotation.customer.company_name }}</div>
+                        {% endif %}
+                        <div class="party-detail"><strong>Email:</strong> {{ quotation.customer.email }}</div>
+                        {% if quotation.customer.phone %}
+                            <div class="party-detail"><strong>Phone:</strong> {{ quotation.customer.phone }}</div>
+                        {% endif %}
+                        {% if quotation.customer.address %}
+                            <div class="party-detail"><strong>Billing Address:</strong> {{ quotation.customer.address|linebreaksbr }}</div>
+                        {% endif %}
+                        <div class="party-detail"><strong>Tax / GSTIN:</strong> {{ quotation.customer.gst_number|default:"Consumer / Unregistered" }}</div>
+                    </div>
+
+                    <div class="party-box">
+                        <h3>Proposal Parameters</h3>
+                        <div class="party-detail"><strong>Template Source:</strong> {{ quotation.template.name|default:"Custom Commercial Proposal" }}</div>
+                        <div class="party-detail"><strong>Prepared By:</strong> {{ quotation.created_by.get_full_name|default:quotation.created_by.username|default:"Brightloop Operations" }}</div>
+                        <div class="party-detail"><strong>Currency:</strong> Indian Rupee (INR - ₹)</div>
+                        <div class="party-detail"><strong>Payment Term:</strong> Net 15 Days</div>
+                        <div class="party-detail"><strong>Governing Law:</strong> Republic of India (Bengaluru Jurisdiction)</div>
+                    </div>
+                </section>
+
+                <!-- Line Items Table -->
+                <section class="items-section" aria-label="Quotation itemized list">
+                    <table class="sheet-table">
+                        <thead>
+                            <tr>
+                                <th class="col-num">#</th>
+                                <th>Item & Description</th>
+                                <th>Billing Plan</th>
+                                <th>Variant / Edition</th>
+                                <th class="col-qty">Qty</th>
+                                <th class="col-price">Unit Price</th>
+                                <th class="col-total">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for it in items %}
+                                <tr>
+                                    <td class="col-num">{{ forloop.counter }}</td>
+                                    <td>
+                                        <div class="item-title">{{ it.product.name }}</div>
+                                        <div class="item-subtitle">{{ it.product.get_category_display|default:"Standard Catalogue Product" }}</div>
+                                    </td>
+                                    <td>
+                                        {% if it.plan %}
+                                            <span class="item-plan-badge">{{ it.plan.name }} ({{ it.plan.get_billing_frequency_display }})</span>
+                                        {% else %}
+                                            <span style="color:var(--slate); font-size:0.75rem;">One-time / Base</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if it.variant %}
+                                            {{ it.variant.name }}
+                                        {% else %}
+                                            <span style="color:var(--slate); font-size:0.75rem;">Standard</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="col-qty">{{ it.quantity }}</td>
+                                    <td class="col-price">₹{{ it.unit_price|floatformat:2 }}</td>
+                                    <td class="col-total"><strong>₹{{ it.total_price|floatformat:2 }}</strong></td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" style="text-align:center; padding:32px; color:var(--slate);">
+                                        No items registered in this quotation.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Calculations & Commercial Terms -->
+                <section class="sheet-footer-layout" aria-label="Quotation totals and conditions">
+                    <div class="terms-block">
+                        {% if quotation.notes %}
+                            <h4>Special Instructions & Scope</h4>
+                            <div class="custom-notes">
+                                {{ quotation.notes|linebreaksbr }}
+                            </div>
+                        {% endif %}
+
+                        <h4>Standard Terms & Subscription Conditions</h4>
+                        <ol>
+                            <li>All recurring subscription fees are billed per agreed billing frequency and schedule upon activation.</li>
+                            <li>Taxes are calculated in strict compliance with GST regulations (18% Goods & Services Tax).</li>
+                            <li>Payment is due within fifteen (15) calendar days from receipt of recurring tax invoices.</li>
+                            <li>Proposal pricing is guaranteed until the specified validity date ({{ quotation.valid_until|date:"d M Y" }}).</li>
+                            <li>Converting this quotation initializes provisioning of recurring subscription agreements.</li>
+                        </ol>
+                    </div>
+
+                    <div class="totals-card">
+                        <div class="total-row">
+                            <span>Taxable Subtotal:</span>
+                            <strong>₹{{ quotation.subtotal|floatformat:2 }}</strong>
+                        </div>
+                        <div class="total-row">
+                            <span>GST (18%):</span>
+                            <strong>₹{{ quotation.tax_amount|floatformat:2 }}</strong>
+                        </div>
+                        <div class="total-row grand-total-row">
+                            <span>Total Proposal:</span>
+                            <span class="amount">₹{{ quotation.total_amount|floatformat:2 }}</span>
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--slate); margin-top:10px; text-align:right;">
+                            Amounts shown in INR (₹)
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Signature & Sign-Off Section -->
+                <footer class="signatures-grid" aria-label="Signatures">
+                    <div class="signature-box">
+                        <div style="height:36px;"></div>
+                        <div class="role-label">Authorized Signatory</div>
+                        <div class="sign-name">Brightloop Technologies Pvt. Ltd.</div>
+                    </div>
+                    <div class="signature-box">
+                        <div style="height:36px;"></div>
+                        <div class="role-label">Customer Acceptance & Confirmation</div>
+                        <div class="sign-name">{{ quotation.customer.name }}</div>
+                    </div>
+                </footer>
+            </article>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar mobile drawer toggle
+        const menuButton = document.getElementById('menuButton');
+        const sidebar = document.getElementById('sidebar');
+        if (menuButton && sidebar) {
+            menuButton.addEventListener('click', () => {
+                const isOpen = sidebar.classList.toggle('open');
+                menuButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        }
+    </script>
+</body>
+</html>

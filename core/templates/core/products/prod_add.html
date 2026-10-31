@@ -14,8 +14,8 @@
       <a class="brand" href="{% url 'product_list' %}" aria-label="Brightloop home"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>Brightloop<small>Subscription management</small></span></a>
       <nav class="navigation">
         <p class="nav-label">Workspace</p><a class="nav-link" href="#"><span class="nav-icon">⌂</span>Overview</a>
-        <p class="nav-label">Catalogue</p><a class="nav-link active" href="{% url 'product_list' %}" aria-current="page"><span class="nav-icon">□</span>Products</a><a class="nav-link" href="#"><span class="nav-icon">▤</span>Subscription plans</a>
-        <p class="nav-label">Revenue</p><a class="nav-link" href="#"><span class="nav-icon">♙</span>Customers</a><a class="nav-link" href="#"><span class="nav-icon">▱</span>Quotations</a><a class="nav-link" href="#"><span class="nav-icon">◴</span>Subscriptions</a>
+        <p class="nav-label">Catalogue</p><a class="nav-link active" href="{% url 'product_list' %}" aria-current="page"><span class="nav-icon">□</span>Products</a><a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+        <p class="nav-label">Revenue</p><a class="nav-link" href="#"><span class="nav-icon">♙</span>Customers</a><a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a><a class="nav-link" href="#"><span class="nav-icon">◴</span>Subscriptions</a>
       </nav>
       <div class="account"><span class="avatar" aria-hidden="true">AD</span><span><strong>Admin User</strong><small>Administrator</small></span><button class="more-button" type="button" aria-label="Account options">•••</button></div>
     </aside>
