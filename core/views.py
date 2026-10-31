@@ -2,14 +2,23 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import User, Group
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .forms import LoginForm, RegistrationForm
+from .forms import LoginForm, RegistrationForm,  StaffCreationForm
 from .models import Product, ProductVariant
+from django.db import transaction
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.decorators import login_required
+
+
+
+
+
+
 
 
 def product_create(request):
@@ -197,11 +206,13 @@ def logout_view(request):
 
 @login_required
 def create_staff(request):
-    if not (
-        request.user.is_superuser or
-        request.user.groups.filter(name='Admin').exists()
-    ):
+    # if not (
+    #     request.user.is_superuser or
+    #     request.user.groups.filter(name='Admin').exists()
+    # ):
+    if not (request.user.is_superuser or request.user.groups.filter(name='Admin').exists()):
         raise PermissionDenied
+    raise PermissionDenied
 
     if request.method == 'POST':
         form = StaffCreationForm(request.POST)
