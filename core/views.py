@@ -1,11 +1,14 @@
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import Group
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+from .forms import LoginForm, RegistrationForm
 from .models import Product, ProductVariant
 
 
@@ -143,32 +146,48 @@ def product_list(request):
     products = Product.objects.prefetch_related("variants").all()
     return render(request, "core/products/prod_list.html", {"products": products})
 
-def register(request):
 
+def register(request):
+    """Register a new customer account and assign to Customer group."""
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
-
         if form.is_valid():
             user = form.save()
-
-            customer_group, created = Group.objects.get_or_create(
-                name='Customer'
-            )
-
+            customer_group, _ = Group.objects.get_or_create(name='Customer')
             user.groups.add(customer_group)
-
-            messages.success(
-                request,
-                "Registration successful! You can now log in."
-            )
-
-            return redirect('register')
-
+            messages.success(request, "Registration successful! You can now log in.")
+            return redirect('login')
     else:
         form = RegistrationForm()
 
     return render(
         request,
         'core/authentication/registration.html',
-        {'form': form}
+        {'form': form},
     )
+
+
+def login_view(request):
+    """Authenticate and log in an existing user."""
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f"Welcome back, {user.first_name or user.username}!")
+            return redirect('product_list')
+    else:
+        form = LoginForm()
+
+    return render(
+        request,
+        'core/authentication/login.html',
+        {'form': form},
+    )
+
+
+def logout_view(request):
+    """Log out current user."""
+    logout(request)
+    messages.success(request, "You have been logged out successfully.")
+    return redirect('login')

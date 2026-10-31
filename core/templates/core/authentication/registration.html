@@ -1,23 +1,30 @@
 {% load static %}
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Customer Registration</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Registration | Brightloop</title>
     <link rel="stylesheet" href="{% static 'core/css/registration.css' %}">
 </head>
 <body>
 
     <div class="container">
+        <div class="brand-header">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span class="brand-title">Brightloop</span>
+        </div>
 
         <h2>Create Your Account</h2>
-        <p class="subtitle">Register to manage your subscriptions</p>
+        <p class="subtitle">Register to manage your subscriptions and invoices.</p>
 
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success" role="status">✓ {{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
-        <form method="POST">
+        <form method="POST" novalidate>
             {% csrf_token %}
             {{ form.as_p }}
 
@@ -25,9 +32,8 @@
         </form>
 
         <p class="login">
-            Already have an account? <a href="#">Login</a>
+            Already have an account? <a href="{% url 'login' %}">Login</a>
         </p>
-
     </div>
 
 </body>

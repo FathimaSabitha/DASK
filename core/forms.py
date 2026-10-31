@@ -1,42 +1,46 @@
 from django import forms
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from .models import CustomerProfile
 
 
 class RegistrationForm(forms.Form):
-
     full_name = forms.CharField(
         max_length=150,
         label="Full Name",
         widget=forms.TextInput(attrs={
-            'placeholder': 'Enter your full name'
-        })
+            'placeholder': 'Enter your full name',
+            'autocomplete': 'name',
+        }),
     )
 
     email = forms.EmailField(
         label="Email Address",
         widget=forms.EmailInput(attrs={
-            'placeholder': 'Enter your email'
-        })
+            'placeholder': 'Enter your email',
+            'autocomplete': 'email',
+        }),
     )
 
     password1 = forms.CharField(
         label="Password",
         widget=forms.PasswordInput(attrs={
-            'placeholder': 'Create a password'
-        })
+            'placeholder': 'Create a password',
+            'autocomplete': 'new-password',
+        }),
     )
 
     password2 = forms.CharField(
         label="Confirm Password",
         widget=forms.PasswordInput(attrs={
-            'placeholder': 'Confirm your password'
-        })
+            'placeholder': 'Confirm your password',
+            'autocomplete': 'new-password',
+        }),
     )
 
     customer_type = forms.ChoiceField(
         choices=CustomerProfile.CUSTOMER_TYPES,
-        label="Customer Type"
+        label="Customer Type",
     )
 
     company_name = forms.CharField(
@@ -44,8 +48,8 @@ class RegistrationForm(forms.Form):
         required=False,
         label="Company Name",
         widget=forms.TextInput(attrs={
-            'placeholder': 'Enter company name'
-        })
+            'placeholder': 'Enter company name',
+        }),
     )
 
     phone = forms.CharField(
@@ -53,8 +57,8 @@ class RegistrationForm(forms.Form):
         required=False,
         label="Phone Number",
         widget=forms.TextInput(attrs={
-            'placeholder': 'Enter phone number'
-        })
+            'placeholder': 'Enter phone number',
+        }),
     )
 
     address = forms.CharField(
@@ -62,8 +66,8 @@ class RegistrationForm(forms.Form):
         label="Address",
         widget=forms.Textarea(attrs={
             'placeholder': 'Enter your address',
-            'rows': 3
-        })
+            'rows': 3,
+        }),
     )
 
     def clean_email(self):
@@ -81,9 +85,7 @@ class RegistrationForm(forms.Form):
         password = self.cleaned_data['password1']
 
         if len(password) <= 8:
-            raise forms.ValidationError(
-                "Password must be more than 8 characters"
-            )
+            raise forms.ValidationError("Password must be more than 8 characters")
 
         if not any(c.isupper() for c in password):
             raise forms.ValidationError("Include an uppercase letter")
@@ -99,10 +101,11 @@ class RegistrationForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
 
-        if (cleaned_data.get('password1') and
-                cleaned_data.get('password2') and
-                cleaned_data['password1'] != cleaned_data['password2']):
-
+        if (
+            cleaned_data.get('password1')
+            and cleaned_data.get('password2')
+            and cleaned_data['password1'] != cleaned_data['password2']
+        ):
             self.add_error('password2', "Passwords do not match")
 
         return cleaned_data
@@ -114,7 +117,7 @@ class RegistrationForm(forms.Form):
             username=email,
             email=email,
             first_name=self.cleaned_data['full_name'],
-            password=self.cleaned_data['password1']
+            password=self.cleaned_data['password1'],
         )
 
         CustomerProfile.objects.create(
@@ -122,5 +125,40 @@ class RegistrationForm(forms.Form):
             customer_type=self.cleaned_data['customer_type'],
             company_name=self.cleaned_data['company_name'],
             phone=self.cleaned_data['phone'],
-            address=self.cleaned_data['address']
+            address=self.cleaned_data['address'],
         )
+
+        return user
+
+
+class LoginForm(forms.Form):
+    email = forms.EmailField(
+        label="Email Address",
+        widget=forms.EmailInput(attrs={
+            'placeholder': 'Enter your email',
+            'autocomplete': 'email',
+        }),
+    )
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Enter your password',
+            'autocomplete': 'current-password',
+        }),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email', '').strip().lower()
+        password = cleaned_data.get('password', '')
+
+        if email and password:
+            user = authenticate(username=email, password=password)
+            if not user:
+                raise forms.ValidationError("Invalid email or password.")
+            self.user_cache = user
+
+        return cleaned_data
+
+    def get_user(self):
+        return getattr(self, 'user_cache', None)

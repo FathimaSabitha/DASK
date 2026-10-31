@@ -1,11 +1,12 @@
 from decimal import Decimal
 
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import Product, ProductVariant
+from .models import CustomerProfile, Product, ProductVariant
 
 
 class ProductModelTests(TestCase):
@@ -145,7 +146,6 @@ class ProductViewTests(TestCase):
         self.assertTrue(Product.objects.filter(name="Brightloop Invoicing").exists())
 
     def test_post_product_create_validation_error(self):
-        # Missing product name and invalid price
         payload = {
             "productName": "",
             "productType": "Software",
@@ -180,3 +180,79 @@ class ProductViewTests(TestCase):
         self.assertContains(response, "2500.00")
         self.assertContains(response, "Enterprise")
         self.assertContains(response, "1000.00")
+
+
+class AuthenticationTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_get_registration_page(self):
+        response = self.client.get(reverse("register"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/authentication/registration.html")
+        self.assertContains(response, "Create Your Account")
+
+    def test_post_registration_success(self):
+        payload = {
+            "full_name": "Bob Smith",
+            "email": "bob@example.com",
+            "password1": "StrongPass@123",
+            "password2": "StrongPass@123",
+            "customer_type": "business",
+            "company_name": "Acme Corp",
+            "phone": "9876543210",
+            "address": "456 Market St",
+        }
+        response = self.client.post(reverse("register"), data=payload)
+        self.assertRedirects(response, reverse("login"))
+
+        user = User.objects.get(email="bob@example.com")
+        self.assertEqual(user.first_name, "Bob Smith")
+        self.assertTrue(user.groups.filter(name="Customer").exists())
+        self.assertEqual(user.customer_profile.customer_type, "business")
+        self.assertEqual(user.customer_profile.company_name, "Acme Corp")
+
+    def test_post_registration_password_mismatch(self):
+        payload = {
+            "full_name": "Bob Smith",
+            "email": "bob@example.com",
+            "password1": "StrongPass@123",
+            "password2": "DifferentPass@123",
+            "customer_type": "individual",
+        }
+        response = self.client.post(reverse("register"), data=payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context["form"], "password2", "Passwords do not match")
+        self.assertEqual(User.objects.filter(email="bob@example.com").count(), 0)
+
+    def test_post_registration_weak_password(self):
+        payload = {
+            "full_name": "Bob Smith",
+            "email": "bob@example.com",
+            "password1": "short",
+            "password2": "short",
+            "customer_type": "individual",
+        }
+        response = self.client.post(reverse("register"), data=payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(
+            response.context["form"],
+            "password1",
+            "Password must be more than 8 characters",
+        )
+
+    def test_login_and_logout_flow(self):
+        User.objects.create_user(
+            username="user@example.com",
+            email="user@example.com",
+            password="ValidPass#2026",
+            first_name="Jane",
+        )
+        login_res = self.client.post(reverse("login"), {
+            "email": "user@example.com",
+            "password": "ValidPass#2026",
+        })
+        self.assertRedirects(login_res, reverse("product_list"))
+
+        logout_res = self.client.get(reverse("logout"))
+        self.assertRedirects(logout_res, reverse("login"))
