@@ -1,5 +1,5 @@
-from decimal import Decimal, InvalidOperation
 
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
@@ -148,7 +148,6 @@ def product_list(request):
 
 
 def register(request):
-    """Register a new customer account and assign to Customer group."""
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -191,3 +190,51 @@ def logout_view(request):
     logout(request)
     messages.success(request, "You have been logged out successfully.")
     return redirect('login')
+
+
+
+# STAFF CREATION
+
+@login_required
+def create_staff(request):
+    if not (
+        request.user.is_superuser or
+        request.user.groups.filter(name='Admin').exists()
+    ):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        form = StaffCreationForm(request.POST)
+
+        if form.is_valid():
+            with transaction.atomic():
+                email = form.cleaned_data['email']
+
+                user = User.objects.create_user(
+                    username=email,
+                    email=email,
+                    first_name=form.cleaned_data['full_name'],
+                    password=form.cleaned_data['password1']
+                )
+
+                staff_group, created = Group.objects.get_or_create(
+                    name='Internal Staff'
+                )
+
+                user.groups.add(staff_group)
+
+            messages.success(
+                request,
+                "Staff account created successfully!"
+            )
+
+            return redirect('create_staff')
+
+    else:
+        form = StaffCreationForm()
+
+    return render(
+        request,
+        'core/admin/staff_creation.html',
+        {'form': form}
+    )
