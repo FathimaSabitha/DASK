@@ -249,3 +249,48 @@ class StaffCreationForm(forms.Form):
 
         return user
 
+
+# CUSTOMER MANAGEMENT
+
+class CustomerUpdateForm(forms.ModelForm):
+
+    full_name = forms.CharField(
+        max_length=150,
+        label="Full Name"
+    )
+
+    email = forms.EmailField(
+        label="Email Address",
+        disabled=True
+    )
+
+    class Meta:
+        model = CustomerProfile
+        fields = [
+            'customer_type',
+            'company_name',
+            'phone',
+            'address'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.pk:
+            self.fields['full_name'].initial = (
+                self.instance.user.first_name
+            )
+            self.fields['email'].initial = (
+                self.instance.user.email
+            )
+
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+
+        profile.user.first_name = self.cleaned_data['full_name']
+
+        if commit:
+            profile.user.save()
+            profile.save()
+
+        return profile
