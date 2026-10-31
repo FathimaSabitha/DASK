@@ -1,0 +1,192 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discount Rules | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <style>
+        .catalogue-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .catalogue-header h1 {
+            margin: 0;
+            font-size: clamp(1.75rem, 3vw, 2.15rem);
+            letter-spacing: -.035em;
+            color: var(--navy);
+        }
+        .catalogue-header p {
+            color: var(--slate);
+            margin: 6px 0 0;
+            font-size: .9rem;
+        }
+        .disc-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .disc-table th, .disc-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        .disc-table th {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--slate);
+            background: #fbfcfe;
+            font-weight: 750;
+        }
+        .disc-table tr:hover td {
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'home' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Dashboard</a>
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link" href="{% url 'product_list' %}"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+            <p class="nav-label">Sales & Operations</p>
+            <a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+            <p class="nav-label">Billing</p>
+            <a class="nav-link" href="{% url 'invoice_list' %}"><span class="nav-icon">▤</span>Invoices</a>
+            <a class="nav-link" href="{% url 'payment_list' %}"><span class="nav-icon">◈</span>Payments</a>
+            <p class="nav-label">Administration</p>
+            <a class="nav-link" href="{% url 'tax_rule_list' %}"><span class="nav-icon">%</span>Tax Rules</a>
+            <a class="nav-link active" href="{% url 'discount_rule_list' %}"><span class="nav-icon">✂</span>Discount Rules</a>
+            <a class="nav-link" href="{% url 'create_staff' %}"><span class="nav-icon">👥</span>Staff Accounts</a>
+            <p class="nav-label">Analytics</p>
+            <a class="nav-link" href="{% url 'reports' %}"><span class="nav-icon">📊</span>Reports & Analytics</a>
+        </nav>
+        <div class="account" style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="avatar" aria-hidden="true">{{ request.user.first_name|default:request.user.username|slice:":2"|upper }}</span>
+                <span>
+                    <strong>{{ request.user.first_name|default:request.user.username }}</strong>
+                    <small style="display:block; color:var(--slate); font-size:0.75rem;">Administrator</small>
+                </span>
+            </div>
+            <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" title="Logout" style="background:none; border:none; cursor:pointer; color:var(--slate); font-size:1.1rem; padding:4px;">🚪</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'home' %}">Overview</a>
+                <span>/</span>
+                <strong>Discount Rules</strong>
+            </nav>
+            <div class="topbar-actions">
+                <a href="{% url 'discount_rule_create' %}" class="button button-primary" style="font-size:0.8rem; padding:6px 14px;">＋ New Discount Rule</a>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <!-- Messages -->
+            {% if messages %}
+            {% for message in messages %}
+            <div style="padding:12px 16px; margin-bottom:16px; border-radius:8px; font-size:0.85rem; font-weight:600;
+                {% if message.tags == 'success' %}background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;
+                {% elif message.tags == 'error' %}background:#fee2e2; color:#b91c1c; border:1px solid #fecaca;
+                {% else %}background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="catalogue-header">
+                <div>
+                    <h1>Commercial Discount Rules (FR-33 to FR-37)</h1>
+                    <p>Only administrators can create discount rules. Rules apply automatically to eligible recurring invoices.</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="background:#ffffff; border:1px solid var(--border); border-radius:12px; overflow-x:auto;">
+                <table class="disc-table">
+                    <thead>
+                        <tr>
+                            <th>Rule Name</th>
+                            <th>Type</th>
+                            <th>Discount Value</th>
+                            <th>Threshold</th>
+                            <th>Validity Period</th>
+                            <th>Usage</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in rules %}
+                        <tr>
+                            <td><strong>{{ d.name }}</strong></td>
+                            <td><span style="text-transform:capitalize; font-weight:600;">{{ d.get_discount_type_display }}</span></td>
+                            <td style="font-weight:750; color:#16a34a;">
+                                {% if d.discount_type == 'percentage' %}{{ d.value }}%{% else %}₹{{ d.value|floatformat:2 }}{% endif %}
+                            </td>
+                            <td>
+                                {% if d.min_order_value %}Min ₹{{ d.min_order_value|floatformat:2 }}{% else %}None{% endif %}
+                            </td>
+                            <td>
+                                {% if d.valid_from or d.valid_until %}
+                                {{ d.valid_from|date:"d M Y"|default:"Start" }} → {{ d.valid_until|date:"d M Y"|default:"End" }}
+                                {% else %}
+                                Permanent
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ d.times_used }} / {% if d.usage_limit %}{{ d.usage_limit }}{% else %}∞{% endif %}
+                            </td>
+                            <td>
+                                <span style="font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:6px;
+                                    {% if d.is_valid_today %}background:#dcfce7; color:#15803d;{% else %}background:#fee2e2; color:#b91c1c;{% endif %}">
+                                    {% if d.is_valid_today %}Eligible{% else %}Expired / Inactive{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display:flex; gap:6px;">
+                                    <a href="{% url 'discount_rule_edit' d.id %}" class="button button-secondary" style="font-size:0.75rem; padding:4px 8px;">Edit</a>
+                                    <form method="post" action="{% url 'discount_rule_delete' d.id %}" style="margin:0;" onsubmit="return confirm('Delete this discount rule?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="button button-danger" style="font-size:0.75rem; padding:4px 8px;">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:40px; color:var(--slate);">
+                                <strong>No discount rules created yet.</strong>
+                                <p style="margin:6px 0 0;"><a href="{% url 'discount_rule_create' %}" class="button button-primary" style="font-size:0.8rem; padding:6px 12px; margin-top:8px;">Create First Discount Rule</a></p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

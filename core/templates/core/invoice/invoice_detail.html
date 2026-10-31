@@ -1,0 +1,449 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ invoice.invoice_number }} | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <style>
+        .invoice-sheet {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+            max-width: 900px;
+            margin: 0 auto 30px;
+        }
+        .inv-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 24px;
+            margin-bottom: 28px;
+        }
+        .inv-brand {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: -0.03em;
+        }
+        .inv-brand small {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--slate);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        .inv-meta {
+            text-align: right;
+        }
+        .inv-meta h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #2563eb;
+        }
+        .meta-line {
+            font-size: 0.85rem;
+            color: var(--slate);
+            margin-top: 4px;
+        }
+        .addresses-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        .address-box h3 {
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--slate);
+            margin: 0 0 8px;
+        }
+        .address-box p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--navy);
+        }
+        .inv-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        .inv-items-table th, .inv-items-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+        .inv-items-table th {
+            background: #f8fafc;
+            color: var(--slate);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 750;
+        }
+        .inv-summary-grid {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 28px;
+        }
+        .summary-card {
+            width: 320px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            font-size: 0.88rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .summary-row.total {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--navy);
+            border-top: 2px solid #0f172a;
+            border-bottom: none;
+            padding-top: 12px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 750;
+            text-transform: capitalize;
+        }
+        .status-badge.draft { background: #f1f5f9; color: #475569; }
+        .status-badge.confirmed { background: #eff6ff; color: #1d4ed8; }
+        .status-badge.sent { background: #e0e7ff; color: #4338ca; }
+        .status-badge.paid { background: #dcfce7; color: #15803d; }
+        .status-badge.overdue { background: #fee2e2; color: #b91c1c; }
+        .status-badge.cancelled { background: #f3f4f6; color: #9ca3af; }
+        .btn-toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        @media print {
+            .sidebar, .topbar, .btn-toolbar, .payment-form-card, .account-button {
+                display: none !important;
+            }
+            .app-shell {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .invoice-sheet {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'home' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Dashboard</a>
+            
+            {% if is_staff %}
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link" href="{% url 'product_list' %}"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+
+            <p class="nav-label">Sales & Operations</p>
+            <a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+
+            <p class="nav-label">Billing</p>
+            <a class="nav-link active" href="{% url 'invoice_list' %}"><span class="nav-icon">▤</span>Invoices</a>
+            <a class="nav-link" href="{% url 'payment_list' %}"><span class="nav-icon">◈</span>Payments</a>
+            <p class="nav-label">Analytics</p>
+            <a class="nav-link" href="{% url 'reports' %}"><span class="nav-icon">📊</span>Reports & Analytics</a>
+
+            {% else %}
+            <p class="nav-label">My Records</p>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>My Subscriptions</a>
+            <a class="nav-link active" href="{% url 'invoice_list' %}"><span class="nav-icon">▤</span>My Invoices</a>
+            <a class="nav-link" href="{% url 'payment_list' %}"><span class="nav-icon">◈</span>Payment History</a>
+            {% endif %}
+        </nav>
+        <div class="account" style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="avatar" aria-hidden="true">{{ request.user.first_name|default:request.user.username|slice:":2"|upper }}</span>
+                <span>
+                    <strong>{{ request.user.first_name|default:request.user.username }}</strong>
+                    <small style="display:block; color:var(--slate); font-size:0.75rem;">
+                        {% if request.user.is_superuser %}Admin{% elif is_staff %}Staff{% else %}Customer{% endif %}
+                    </small>
+                </span>
+            </div>
+            <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" title="Logout" style="background:none; border:none; cursor:pointer; color:var(--slate); font-size:1.1rem; padding:4px;">🚪</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'invoice_list' %}">Invoices</a>
+                <span>/</span>
+                <strong>{{ invoice.invoice_number }}</strong>
+            </nav>
+            <div class="topbar-actions">
+                <a href="{% url 'invoice_list' %}" class="button button-secondary" style="font-size:0.8rem; padding:6px 12px;">← All Invoices</a>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <!-- Messages -->
+            {% if messages %}
+            {% for message in messages %}
+            <div style="padding:12px 16px; margin-bottom:16px; border-radius:8px; font-size:0.85rem; font-weight:600;
+                {% if message.tags == 'success' %}background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;
+                {% elif message.tags == 'error' %}background:#fee2e2; color:#b91c1c; border:1px solid #fecaca;
+                {% else %}background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Actions Toolbar (FR-30) -->
+            <div class="btn-toolbar">
+                <button onclick="window.print()" class="button button-primary">⎙ Print Invoice</button>
+
+                {% if is_staff %}
+                    {% if invoice.status == 'draft' %}
+                    <form method="post" action="{% url 'invoice_status_action' invoice.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="mark_sent">
+                        <button type="submit" class="button button-secondary">Confirm & Send</button>
+                    </form>
+                    {% endif %}
+
+                    {% if invoice.status != 'paid' and invoice.status != 'cancelled' %}
+                    <form method="post" action="{% url 'invoice_status_action' invoice.id %}" style="margin:0;" onsubmit="return confirm('Cancel this invoice?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="mark_draft">
+                        <button type="submit" class="button button-danger">Cancel Invoice</button>
+                    </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Printable Sheet (FR-28, FR-31) -->
+            <div class="invoice-sheet" id="invoiceSheet">
+                <div class="inv-head">
+                    <div>
+                        <div class="inv-brand">Brightloop Software</div>
+                        <small>Official Tax Invoice & Billing Statement</small>
+                        <div style="font-size:0.8rem; color:var(--slate); margin-top:6px; line-height:1.4;">
+                            Brightloop HQ, Indiranagar, Bengaluru, KA 560038<br>
+                            GSTIN: 29AABCU9603R1ZM | contact@brightloop.io
+                        </div>
+                    </div>
+                    <div class="inv-meta">
+                        <h2>TAX INVOICE</h2>
+                        <div class="meta-line"><strong>Invoice No:</strong> {{ invoice.invoice_number }}</div>
+                        <div class="meta-line"><strong>Invoice Date:</strong> {{ invoice.issue_date|date:"d M Y" }}</div>
+                        <div class="meta-line"><strong>Due Date:</strong> {{ invoice.due_date|date:"d M Y" }}</div>
+                        <div class="meta-line" style="margin-top:6px;">
+                            <span class="status-badge {% if invoice.is_overdue %}overdue{% else %}{{ invoice.status }}{% endif %}">
+                                {% if invoice.is_overdue %}Overdue{% else %}{{ invoice.status }}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="addresses-grid">
+                    <div class="address-box">
+                        <h3>Billed To (Customer):</h3>
+                        <p><strong>{{ invoice.customer.name }}</strong></p>
+                        {% if invoice.customer.company_name %}<p>{{ invoice.customer.company_name }}</p>{% endif %}
+                        <p>{{ invoice.customer.email }}</p>
+                        {% if invoice.customer.phone %}<p>Phone: {{ invoice.customer.phone }}</p>{% endif %}
+                        {% if invoice.customer.address %}<p>{{ invoice.customer.address }}</p>{% endif %}
+                        {% if invoice.customer.gst_number %}<p>Customer GSTIN: {{ invoice.customer.gst_number }}</p>{% endif %}
+                    </div>
+                    <div class="address-box">
+                        <h3>Subscription Reference:</h3>
+                        {% if invoice.subscription %}
+                        <p><strong>Subscription:</strong> <a href="{% url 'subscription_detail' invoice.subscription.id %}" style="color:#2563eb; text-decoration:none;">{{ invoice.subscription.subscription_number }}</a></p>
+                        <p><strong>Plan:</strong> {{ invoice.subscription.plan.name|default:"Standard Plan" }}</p>
+                        <p><strong>Billing Terms:</strong> {{ invoice.subscription.payment_terms }}</p>
+                        {% if invoice.billing_period_start and invoice.billing_period_end %}
+                        <p><strong>Period:</strong> {{ invoice.billing_period_start|date:"d M Y" }} to {{ invoice.billing_period_end|date:"d M Y" }}</p>
+                        {% endif %}
+                        {% else %}
+                        <p>Direct Invoice</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Line Items Table (FR-28) -->
+                <table class="inv-items-table">
+                    <thead>
+                        <tr>
+                            <th>Item Description</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Discount</th>
+                            <th>Tax</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in items %}
+                        <tr>
+                            <td>
+                                <strong>{{ line.product.name }}</strong>
+                                {% if line.variant %}<small style="display:block; color:var(--slate);">Variant: {{ line.variant.name }}</small>{% endif %}
+                            </td>
+                            <td>{{ line.quantity }}</td>
+                            <td>₹{{ line.unit_price|floatformat:2 }}</td>
+                            <td>₹{{ line.discount_amount|floatformat:2 }}</td>
+                            <td>₹{{ line.tax_amount|floatformat:2 }}</td>
+                            <td style="font-weight:750;">₹{{ line.total_price|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center; color:var(--slate); padding:20px;">No line items in this invoice.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Summary Totals (FR-28, FR-32, FR-36) -->
+                <div class="inv-summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-row">
+                            <span style="color:var(--slate);">Subtotal</span>
+                            <span style="font-weight:700;">₹{{ invoice.subtotal|floatformat:2 }}</span>
+                        </div>
+                        {% if invoice.discount_amount > 0 %}
+                        <div class="summary-row" style="color:#16a34a;">
+                            <span>Discount ({% if invoice.discount_rule %}{{ invoice.discount_rule.name }}{% else %}Applied{% endif %})</span>
+                            <span style="font-weight:700;">- ₹{{ invoice.discount_amount|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="summary-row">
+                            <span style="color:var(--slate);">Tax Amount ({% if invoice.tax_rule %}{{ invoice.tax_rule.name }}{% else %}GST 18%{% endif %})</span>
+                            <span style="font-weight:700;">+ ₹{{ invoice.tax_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total Invoice Amount</span>
+                            <span style="color:#2563eb;">₹{{ invoice.total_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row" style="border-top:1px dashed #cbd5e1; margin-top:8px; padding-top:8px;">
+                            <span>Amount Paid</span>
+                            <span style="font-weight:700; color:#16a34a;">₹{{ invoice.amount_paid|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row" style="font-size:1rem; font-weight:800;">
+                            <span>Balance Due</span>
+                            <span style="color:{% if invoice.amount_due > 0 %}#dc2626{% else %}#16a34a{% endif %};">₹{{ invoice.amount_due|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if invoice.notes %}
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; margin-top:16px; font-size:0.85rem;">
+                    <strong>Notes / Instructions:</strong> {{ invoice.notes }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Recorded Payments History (FR-39, FR-40) -->
+            <div style="max-width:900px; margin:0 auto 30px;">
+                <div style="background:#ffffff; border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <h3 style="margin:0 0 16px; font-size:1.05rem; color:var(--navy);">Recorded Payments Against This Invoice</h3>
+                    <table class="inv-items-table" style="margin-bottom:0;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Payment Method</th>
+                                <th>Reference #</th>
+                                <th>Recorded By</th>
+                                <th>Amount</th>
+                                {% if is_staff %}<th>Action</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in payments %}
+                            <tr>
+                                <td>{{ p.payment_date|date:"d M Y" }}</td>
+                                <td>{{ p.get_payment_method_display }}</td>
+                                <td>{{ p.reference_number|default:"—" }}</td>
+                                <td>{{ p.recorded_by.username|default:"System" }}</td>
+                                <td style="font-weight:750; color:#16a34a;">₹{{ p.amount|floatformat:2 }}</td>
+                                {% if is_staff %}
+                                <td>
+                                    <form method="post" action="{% url 'payment_delete' p.id %}" style="margin:0;" onsubmit="return confirm('Delete payment?');">
+                                        {% csrf_token %}
+                                        <button type="submit" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:0.75rem;">Delete</button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if is_staff %}6{% else %}5{% endif %}" style="text-align:center; color:var(--slate); padding:16px;">
+                                    No payments recorded yet for this invoice.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Record Payment Form (FR-34, FR-35, FR-38) - Staff Only -->
+            {% if is_staff and invoice.amount_due > 0 %}
+            <div class="payment-form-card" style="max-width:900px; margin:0 auto 40px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:24px;">
+                <h3 style="margin:0 0 16px; font-size:1.05rem; color:var(--navy);">Record Customer Payment (FR-38, FR-39)</h3>
+                <form method="post" action="{% url 'payment_record' invoice.id %}" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:14px; align-items:flex-end;">
+                    {% csrf_token %}
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--slate); margin-bottom:4px;">Payment Method</label>
+                        {{ payment_form.payment_method }}
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--slate); margin-bottom:4px;">Amount (₹) [Max: {{ invoice.amount_due|floatformat:2 }}]</label>
+                        <input type="number" step="0.01" name="amount" value="{{ invoice.amount_due }}" max="{{ invoice.amount_due }}" required style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:7px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--slate); margin-bottom:4px;">Payment Date</label>
+                        {{ payment_form.payment_date }}
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--slate); margin-bottom:4px;">Reference # / UTR</label>
+                        {{ payment_form.reference_number }}
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <button type="submit" class="button button-primary" style="padding:10px 20px; font-weight:750;">Record Payment & Update Invoice</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+        </main>
+    </div>
+</body>
+</html>

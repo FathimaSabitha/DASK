@@ -1,0 +1,870 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Official Brightloop customer product catalogue, specifications, and pricing schedule.">
+    <title>Products Catalogue | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <style>
+        :root {
+            --slate-light: #f8fafc;
+            --brand-primary: #2563eb;
+            --brand-dark: #1e40af;
+            --accent-green: #059669;
+            --accent-green-soft: #ecfdf5;
+            --accent-amber: #d97706;
+            --surface-card: #ffffff;
+        }
+
+        .catalogue-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Hero Masthead */
+        .catalogue-hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 16px;
+            padding: 32px 36px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .catalogue-hero::after {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-left {
+            max-width: 650px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.2);
+            border: 1px solid rgba(147, 197, 253, 0.3);
+            color: #bfdbfe;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .hero-badge span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #60a5fa;
+            display: inline-block;
+        }
+
+        .hero-title {
+            margin: 0;
+            font-size: clamp(1.6rem, 2.8vw, 2.1rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            color: #ffffff;
+        }
+
+        .hero-desc {
+            margin: 8px 0 0;
+            font-size: 0.88rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn-print-hero {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 42px;
+            padding: 0 18px;
+            border-radius: 9px;
+            background: #ffffff;
+            color: var(--navy);
+            border: none;
+            font-size: 0.82rem;
+            font-weight: 750;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.18s ease;
+        }
+
+        .btn-print-hero:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+        }
+
+        /* Filter & Controls Bar */
+        .controls-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03);
+        }
+
+        .search-pill-container {
+            position: relative;
+            flex: 1;
+            min-width: 240px;
+            max-width: 380px;
+        }
+
+        .search-pill-container input {
+            height: 40px;
+            padding: 0 12px 0 38px;
+            font-size: 0.84rem;
+            border-radius: 9px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            width: 100%;
+            transition: all 0.16s ease;
+        }
+
+        .search-pill-container input:focus {
+            background: #ffffff;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .search-pill-icon {
+            position: absolute;
+            top: 50%;
+            left: 13px;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .category-tabs {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 2px 0;
+        }
+
+        .cat-tab {
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: #f1f5f9;
+            color: var(--slate-dark);
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .cat-tab:hover {
+            background: #e2e8f0;
+            color: var(--navy);
+        }
+
+        .cat-tab.active {
+            background: var(--navy);
+            color: #ffffff;
+        }
+
+        .view-toggles {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--slate);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .view-btn.active,
+        .view-btn:hover {
+            border-color: var(--navy);
+            color: var(--navy);
+            background: #f8fafc;
+        }
+
+        /* Products Table Layout */
+        .products-table-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+        }
+
+        .prods-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .prods-table th {
+            padding: 16px 20px;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .prods-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .prods-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .prods-table tr:hover td {
+            background: #fafcff;
+        }
+
+        /* Straight Buy Button next to Product Name */
+        .product-identity-box {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .product-headline-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .sku-badge {
+            font-size: 0.66rem;
+            font-weight: 750;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: 0.03em;
+        }
+
+        .product-title-text {
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 750;
+            color: var(--navy);
+            letter-spacing: -0.015em;
+        }
+
+        .btn-buy-direct {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border: 1px solid #1d4ed8;
+            font-size: 0.76rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+            transition: all 0.16s ease;
+        }
+
+        .btn-buy-direct:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-buy-direct span.icon {
+            font-size: 0.85rem;
+            color: #fde047;
+        }
+
+        .category-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #eff6ff;
+            color: #1e40af;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border: 1px solid #dbeafe;
+        }
+
+        .price-display-box {
+            white-space: nowrap;
+        }
+
+        .price-amt-main {
+            font-size: 1.15rem;
+            font-weight: 850;
+            color: var(--navy);
+        }
+
+        .price-sub-caption {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.67rem;
+            color: #64748b;
+            font-weight: 550;
+        }
+
+        /* Variant Schedule List */
+        .variant-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .variant-chip-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 0.74rem;
+        }
+
+        .variant-chip-row strong {
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .variant-chip-row .variant-addon {
+            color: #7c3aed;
+            font-weight: 700;
+            font-size: 0.7rem;
+        }
+
+        .variant-chip-row .variant-total-pill {
+            background: #ffffff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            font-weight: 800;
+            color: var(--navy);
+        }
+
+        /* Cards Grid Layout */
+        .cards-grid-wrap {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 22px;
+        }
+
+        .prod-grid-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .prod-grid-card:hover {
+            box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.09);
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+        }
+
+        .card-header-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .card-price-callout {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 16px 0;
+        }
+
+        .card-price-callout .label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .card-price-callout .val {
+            font-size: 1.35rem;
+            font-weight: 850;
+            color: var(--navy);
+        }
+
+        /* Empty State */
+        .empty-products-view {
+            text-align: center;
+            padding: 60px 24px;
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px dashed var(--border);
+        }
+
+        /* Official Print Styles */
+        @media print {
+            @page {
+                size: A4;
+                margin: 12mm 14mm 14mm 14mm;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                font-size: 10.5pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .sidebar,
+            .topbar,
+            .catalogue-hero,
+            .controls-panel,
+            .btn-buy-direct,
+            .view-toggles,
+            #sidebar,
+            #menuButton {
+                display: none !important;
+            }
+
+            .app-shell {
+                margin: 0 !important;
+                padding: 0 !important;
+                min-height: auto !important;
+            }
+
+            .page-content {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .print-official-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: flex-start;
+                border-bottom: 2px solid #0f172a;
+                padding-bottom: 16px;
+                margin-bottom: 20px;
+            }
+
+            .prods-table th {
+                background: #f1f5f9 !important;
+                color: #0f172a !important;
+                border-bottom: 2px solid #0f172a !important;
+            }
+
+            .prods-table tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .print-official-footer {
+                display: block !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin-top: 30px;
+                border-top: 1px solid #94a3b8;
+                padding-top: 16px;
+            }
+        }
+
+        .print-official-header,
+        .print-official-footer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Standard Primary Navigation Sidebar (Unchanged Navigation) -->
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'product_userlist' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Overview</a>
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link active" href="{% url 'product_userlist' %}" aria-current="page"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+            <p class="nav-label">Revenue</p>
+            {% if request.user.customer_profile %}
+            <a class="nav-link" href="{% url 'customer_detail' request.user.customer_profile.pk %}"><span class="nav-icon">♙</span>My Profile</a>
+            {% else %}
+            <a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a>
+            {% endif %}
+            <a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+        </nav>
+        <div class="account">
+            <span class="avatar" aria-hidden="true">BL</span>
+            <span><strong>{{ request.user.first_name|default:request.user.username|default:"Customer" }}</strong><small>Portal User</small></span>
+            <a href="{% url 'logout' %}" class="more-button" title="Sign out" style="text-decoration:none;">⎋</a>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <!-- Topbar matching system layout -->
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation" aria-expanded="false">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'product_userlist' %}">Catalogue</a>
+                <span>/</span>
+                <strong>Products</strong>
+            </nav>
+            <div class="topbar-actions">
+                <button class="button button-primary" type="button" onclick="window.print()" style="display:inline-flex; align-items:center; gap:6px; height:36px; font-size:.78rem;">
+                    <span aria-hidden="true">⎙</span> Print Catalogue
+                </button>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <div class="catalogue-wrapper">
+
+                <!-- Print-Only Official Document Header -->
+                <div class="print-official-header">
+                    <div>
+                        <h2 style="margin:0; font-size:1.4rem; font-weight:800; color:#0f172a;">Brightloop Technologies Pvt. Ltd.</h2>
+                        <p style="margin:4px 0 0; font-size:0.8rem; color:#475569;">
+                            Customer Pricing Schedule - Official Products & Services<br>
+                            Global Tech Park, Outer Ring Road, Bengaluru 560103, India | GSTIN: 29AAACB1234F1Z5
+                        </p>
+                    </div>
+                    <div style="text-align:right; font-size:0.8rem; color:#475569;">
+                        <div>Document Ref: <strong>BL-CAT-{% now "Y" %}-V1</strong></div>
+                        <div>Date: <strong>{{ generated_date|date:"F d, Y" }}</strong></div>
+                        <div>Currency: <strong>INR (₹)</strong></div>
+                    </div>
+                </div>
+
+                <!-- Hero Section (Screen Only) -->
+                <section class="catalogue-hero" aria-label="Catalogue masthead">
+                    <div class="hero-left">
+                        <div class="hero-badge">
+                            <span></span> Verified Customer Solutions
+                        </div>
+                        <h1 class="hero-title">Product & Services Catalogue</h1>
+                        <p class="hero-desc">
+                            Explore available subscriptions and cloud applications. Select your desired edition and purchase subscriptions directly.
+                        </p>
+                    </div>
+                    <div class="hero-actions">
+                        <button type="button" class="btn-print-hero" onclick="window.print()">
+                            <span aria-hidden="true">⎙</span> Print / Save PDF
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Filter & Search Controls -->
+                <section class="controls-panel" aria-label="Filter and search products">
+                    <div class="search-pill-container">
+                        <span class="search-pill-icon" aria-hidden="true">🔍</span>
+                        <input type="text" id="catalogueSearch" placeholder="Search by product name, variant or specification..." value="{{ search_query }}">
+                    </div>
+
+                    <div class="category-tabs" role="tablist" aria-label="Category filter">
+                        <button type="button" class="cat-tab {% if not selected_category or selected_category == 'all' %}active{% endif %}" data-cat="all">
+                            All Categories ({{ total_products }})
+                        </button>
+                        {% for cat in categories %}
+                            <button type="button" class="cat-tab {% if selected_category == cat %}active{% endif %}" data-cat="{{ cat }}">
+                                {{ cat }}
+                            </button>
+                        {% endfor %}
+                    </div>
+
+                    <div class="view-toggles">
+                        <button type="button" class="view-btn active" id="tableViewBtn" title="Table View">
+                            <span>☰</span>
+                        </button>
+                        <button type="button" class="view-btn" id="cardViewBtn" title="Cards View">
+                            <span>⊞</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Products Display -->
+                {% if products %}
+                    <!-- 1. Table View (Default) -->
+                    <div class="products-table-card" id="tableViewContainer">
+                        <table class="prods-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 32%;">Product & Purchase Option</th>
+                                    <th style="width: 14%;">Classification</th>
+                                    <th style="width: 24%;">Overview & Notes</th>
+                                    <th style="width: 14%;">Base Sales Rate</th>
+                                    <th style="width: 16%;">Available Editions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                    <tr class="product-row" data-name="{{ product.name|lower }}" data-type="{{ product.product_type|lower }}" data-notes="{{ product.notes|lower }}" data-variants="{% for v in product.variants.all %}{{ v.name|lower }} {% endfor %}">
+                                        <td>
+                                            <div class="product-identity-box">
+                                                <div class="product-headline-row">
+                                                    <span class="sku-badge">BL-PRD-{{ product.id|stringformat:"03d" }}</span>
+                                                    <h3 class="product-title-text">{{ product.name }}</h3>
+                                                    <!-- STRAIGHT BUY OPTION NEXT TO PRODUCT NAME -->
+                                                    <button type="button" class="btn-buy-direct" title="Buy {{ product.name }}">
+                                                        <span class="icon">⚡</span> Buy Now
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="category-chip">{{ product.product_type }}</span>
+                                        </td>
+                                        <td>
+                                            <div style="font-size:0.8rem; color:#475569; line-height:1.45;">
+                                                {{ product.notes|default:"Standard commercial service delivery with included support." }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="price-display-box">
+                                                <span class="price-amt-main">₹{{ product.sales_price|floatformat:2 }}</span>
+                                                <span class="price-sub-caption">Per billing cycle</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if product.variants.all %}
+                                                <div class="variant-items-list">
+                                                    {% for variant in product.variants.all %}
+                                                        <div class="variant-chip-row">
+                                                            <div>
+                                                                <strong>{{ variant.name }}</strong>
+                                                                <span class="variant-addon">(+₹{{ variant.additional_price|floatformat:2 }})</span>
+                                                            </div>
+                                                            <span class="variant-total-pill">
+                                                                ₹{{ variant.sales_price|floatformat:2 }}
+                                                            </span>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <span style="font-size:0.75rem; color:#94a3b8; font-style:italic;">Standard standalone edition</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 2. Cards Grid View -->
+                    <div class="cards-grid-wrap" id="cardViewContainer" style="display: none;">
+                        {% for product in products %}
+                            <article class="prod-grid-card product-card-item" data-name="{{ product.name|lower }}" data-type="{{ product.product_type|lower }}" data-notes="{{ product.notes|lower }}" data-variants="{% for v in product.variants.all %}{{ v.name|lower }} {% endfor %}">
+                                <div>
+                                    <div class="card-header-row">
+                                        <div>
+                                            <span class="sku-badge" style="display:inline-block; margin-bottom:5px;">BL-PRD-{{ product.id|stringformat:"03d" }}</span>
+                                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                                <h3 style="margin:0; font-size:1.15rem; font-weight:800; color:var(--navy);">{{ product.name }}</h3>
+                                                <!-- STRAIGHT BUY OPTION NEXT TO PRODUCT NAME -->
+                                                <button type="button" class="btn-buy-direct" title="Buy {{ product.name }}">
+                                                    <span class="icon">⚡</span> Buy Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <span class="category-chip">{{ product.product_type }}</span>
+                                    </div>
+
+                                    <p style="margin:10px 0 14px; font-size:0.83rem; color:#475569; line-height:1.5;">
+                                        {{ product.notes|default:"Standard commercial service delivery with regular support." }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <div class="card-price-callout">
+                                        <span class="label">Starting Rate</span>
+                                        <span class="val">₹{{ product.sales_price|floatformat:2 }}</span>
+                                    </div>
+
+                                    {% if product.variants.all %}
+                                        <div style="margin-top:14px; border-top:1px dashed #e2e8f0; padding-top:12px;">
+                                            <span style="display:block; font-size:0.68rem; font-weight:750; color:#64748b; text-transform:uppercase; margin-bottom:8px;">Available Configurations</span>
+                                            <div class="variant-items-list">
+                                                {% for variant in product.variants.all %}
+                                                    <div class="variant-chip-row">
+                                                        <div>
+                                                            <strong>{{ variant.name }}</strong>
+                                                            <span class="variant-addon">(+₹{{ variant.additional_price|floatformat:2 }})</span>
+                                                        </div>
+                                                        <span class="variant-total-pill">
+                                                            ₹{{ variant.sales_price|floatformat:2 }}
+                                                        </span>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                {% else %}
+                    <div class="empty-products-view">
+                        <h4 style="margin:0; font-size:1.1rem; color:var(--navy);">No Products Found</h4>
+                        <p style="margin:8px 0 16px; color:#64748b; font-size:0.85rem;">No products match your active search or category selection.</p>
+                        <a href="{% url 'product_userlist' %}" class="button button-secondary">Clear Filters</a>
+                    </div>
+                {% endif %}
+
+                <!-- Print-Only Official Footer -->
+                <div class="print-official-footer">
+                    <div style="font-size:0.75rem; color:#475569; line-height:1.5;">
+                        <strong>Commercial Terms:</strong> All rates are quoted in INR and exclude applicable GST (18%). Pricing is subject to standard subscription agreement terms. Valid for 30 calendar days from issue date.
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:24px; font-size:0.75rem; color:#334155;">
+                        <div>Prepared By: <strong>Brightloop Sales Portal</strong></div>
+                        <div>Authorized Signature: ____________________________________</div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Interactive Client Scripts -->
+    <script>
+        // Mobile Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const menuButton = document.getElementById('menuButton');
+        if (menuButton && sidebar) {
+            menuButton.addEventListener('click', () => {
+                const open = sidebar.classList.toggle('open');
+                menuButton.setAttribute('aria-expanded', String(open));
+            });
+        }
+
+        // View Toggles (Table vs Cards)
+        const tableViewBtn = document.getElementById('tableViewBtn');
+        const cardViewBtn = document.getElementById('cardViewBtn');
+        const tableViewContainer = document.getElementById('tableViewContainer');
+        const cardViewContainer = document.getElementById('cardViewContainer');
+
+        if (tableViewBtn && cardViewBtn && tableViewContainer && cardViewContainer) {
+            tableViewBtn.addEventListener('click', () => {
+                tableViewBtn.classList.add('active');
+                cardViewBtn.classList.remove('active');
+                tableViewContainer.style.display = 'block';
+                cardViewContainer.style.display = 'none';
+            });
+
+            cardViewBtn.addEventListener('click', () => {
+                cardViewBtn.classList.add('active');
+                tableViewBtn.classList.remove('active');
+                tableViewContainer.style.display = 'none';
+                cardViewContainer.style.display = 'grid';
+            });
+        }
+
+        // Search & Category Tabs Filtering
+        const searchInput = document.getElementById('catalogueSearch');
+        const categoryTabs = document.querySelectorAll('.cat-tab');
+        const tableRows = document.querySelectorAll('.product-row');
+        const gridCards = document.querySelectorAll('.product-card-item');
+        let activeCategory = 'all';
+
+        function applyFilters() {
+            const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+            function matchItem(el) {
+                const name = el.getAttribute('data-name') || '';
+                const type = el.getAttribute('data-type') || '';
+                const notes = el.getAttribute('data-notes') || '';
+                const variants = el.getAttribute('data-variants') || '';
+
+                const matchesCat = (activeCategory === 'all' || type === activeCategory.toLowerCase());
+                const matchesQuery = !query || name.includes(query) || type.includes(query) || notes.includes(query) || variants.includes(query);
+                return matchesCat && matchesQuery;
+            }
+
+            tableRows.forEach(row => { row.style.display = matchItem(row) ? '' : 'none'; });
+            gridCards.forEach(card => { card.style.display = matchItem(card) ? '' : 'none'; });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
+
+        categoryTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                categoryTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeCategory = tab.getAttribute('data-cat') || 'all';
+                applyFilters();
+            });
+        });
+    </script>
+</body>
+</html>

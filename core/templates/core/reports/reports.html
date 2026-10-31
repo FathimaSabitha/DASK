@@ -1,0 +1,305 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Financial Analytics | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <style>
+        .report-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .report-header h1 {
+            margin: 0;
+            font-size: clamp(1.75rem, 3vw, 2.15rem);
+            letter-spacing: -.035em;
+            color: var(--navy);
+        }
+        .report-header p {
+            color: var(--slate);
+            margin: 6px 0 0;
+            font-size: .9rem;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 26px;
+        }
+        .kpi-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        }
+        .kpi-label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--slate);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .kpi-val {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin-top: 6px;
+        }
+        .section-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .section-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--navy);
+            font-weight: 750;
+        }
+        .rep-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .rep-table th, .rep-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        .rep-table th {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--slate);
+            background: #fbfcfe;
+            font-weight: 750;
+        }
+        .rep-table tr:hover td {
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'home' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Dashboard</a>
+            
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link" href="{% url 'product_list' %}"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+
+            <p class="nav-label">Sales & Operations</p>
+            <a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+
+            <p class="nav-label">Billing</p>
+            <a class="nav-link" href="{% url 'invoice_list' %}"><span class="nav-icon">▤</span>Invoices</a>
+            <a class="nav-link" href="{% url 'payment_list' %}"><span class="nav-icon">◈</span>Payments</a>
+
+            {% if request.user.is_superuser %}
+            <p class="nav-label">Administration</p>
+            <a class="nav-link" href="{% url 'tax_rule_list' %}"><span class="nav-icon">%</span>Tax Rules</a>
+            <a class="nav-link" href="{% url 'discount_rule_list' %}"><span class="nav-icon">✂</span>Discount Rules</a>
+            <a class="nav-link" href="{% url 'create_staff' %}"><span class="nav-icon">👥</span>Staff Accounts</a>
+            {% endif %}
+
+            <p class="nav-label">Analytics</p>
+            <a class="nav-link active" href="{% url 'reports' %}"><span class="nav-icon">📊</span>Reports & Analytics</a>
+        </nav>
+        <div class="account" style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="avatar" aria-hidden="true">{{ request.user.first_name|default:request.user.username|slice:":2"|upper }}</span>
+                <span>
+                    <strong>{{ request.user.first_name|default:request.user.username }}</strong>
+                    <small style="display:block; color:var(--slate); font-size:0.75rem;">
+                        {% if request.user.is_superuser %}Admin{% elif is_staff %}Staff{% else %}Customer{% endif %}
+                    </small>
+                </span>
+            </div>
+            <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" title="Logout" style="background:none; border:none; cursor:pointer; color:var(--slate); font-size:1.1rem; padding:4px;">🚪</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'home' %}">Overview</a>
+                <span>/</span>
+                <strong>Reports & Analytics</strong>
+            </nav>
+            <div class="topbar-actions">
+                <a href="{% url 'reports_export_csv' %}" class="button button-primary" style="font-size:0.8rem; padding:6px 14px;">📥 Export CSV Report</a>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <div class="report-header">
+                <div>
+                    <h1>Reports & Financial Statements</h1>
+                    <p>Auditable summaries of recurring revenue, collections, outstanding receivables, and customer metrics.</p>
+                </div>
+            </div>
+
+            <!-- KPI Summary Cards (FR-45, FR-46) -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Revenue This Month</div>
+                    <div class="kpi-val" style="color:#16a34a;">₹{{ monthly_revenue|floatformat:2 }}</div>
+                    <small style="color:var(--slate);">Collections in current calendar month</small>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Year to Date Revenue</div>
+                    <div class="kpi-val" style="color:#2563eb;">₹{{ yearly_revenue|floatformat:2 }}</div>
+                    <small style="color:var(--slate);">Calendar year {{ today.year }}</small>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Subscriptions</div>
+                    <div class="kpi-val">
+                        {% for st in sub_status_data %}
+                        {% if st.status == 'active' %}{{ st.count }}{% endif %}
+                        {% empty %}0{% endfor %}
+                    </div>
+                    <small style="color:var(--slate);">Active recurring contracts</small>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap:20px;">
+                <!-- Subscriptions by Status (FR-44) -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Subscription Lifecycle Distribution (FR-44)</h2>
+                    </div>
+                    <table class="rep-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in sub_status_data %}
+                            <tr>
+                                <td><strong style="text-transform:capitalize;">{{ row.status }}</strong></td>
+                                <td style="font-weight:750;">{{ row.count }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" style="text-align:center; color:var(--slate);">No subscriptions recorded.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Payment Methods Distribution (FR-46) -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Collections by Payment Channel</h2>
+                    </div>
+                    <table class="rep-table">
+                        <thead>
+                            <tr>
+                                <th>Payment Method</th>
+                                <th>Transactions</th>
+                                <th>Total Collected</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in payment_by_method %}
+                            <tr>
+                                <td><strong style="text-transform:capitalize;">{{ p.payment_method }}</strong></td>
+                                <td>{{ p.count }}</td>
+                                <td style="font-weight:750; color:#16a34a;">₹{{ p.total|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" style="text-align:center; color:var(--slate);">No payments recorded.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Invoice Status Financial Breakdown (FR-46, FR-47) -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>Invoice Status & Receivables Breakdown</h2>
+                </div>
+                <table class="rep-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice Status</th>
+                            <th>Invoices Count</th>
+                            <th>Total Billed Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in invoice_summary %}
+                        <tr>
+                            <td><strong style="text-transform:capitalize;">{{ row.status }}</strong></td>
+                            <td>{{ row.count }}</td>
+                            <td style="font-weight:750;">₹{{ row.total|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" style="text-align:center; color:var(--slate);">No invoices recorded.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Top Customers by Revenue (FR-45) -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>Top Account Portfolios by Revenue</h2>
+                </div>
+                <table class="rep-table">
+                    <thead>
+                        <tr>
+                            <th>Customer Name</th>
+                            <th>Company</th>
+                            <th>Email</th>
+                            <th>Total Invoiced</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cust in top_customers %}
+                        <tr>
+                            <td><strong><a href="{% url 'customer_detail' cust.pk %}" style="color:#2563eb; text-decoration:none;">{{ cust.name }}</a></strong></td>
+                            <td>{{ cust.company_name|default:"Individual" }}</td>
+                            <td>{{ cust.email }}</td>
+                            <td style="font-weight:750; color:#16a34a;">₹{{ cust.revenue|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align:center; color:var(--slate);">No customer revenue recorded yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

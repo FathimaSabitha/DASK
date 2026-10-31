@@ -1,0 +1,581 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Generate a customer quotation in Brightloop." />
+    <title>Create quotation | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}" />
+    <style>
+        .lines-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .lines-table th {
+            font-size: 0.68rem;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--slate);
+            padding: 8px 10px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .lines-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .line-select, .line-input {
+            width: 100%;
+            height: 38px;
+            font-size: 0.82rem;
+            padding: 0 10px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+        }
+
+        .btn-remove-line {
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            border: 1px solid #fecaca;
+            background: #ffffff;
+            color: #dc2626;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            transition: all 0.15s ease;
+        }
+
+        .btn-remove-line:hover {
+            background: #fee2e2;
+        }
+
+        .btn-add-line {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 7px;
+            border: 1px dashed var(--blue);
+            background: #eff6ff;
+            color: var(--blue-dark);
+            font-size: 0.78rem;
+            font-weight: 750;
+            cursor: pointer;
+            margin-top: 14px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-add-line:hover {
+            background: #dbeafe;
+        }
+
+        .calculation-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.82rem;
+            margin-top: 14px;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--slate);
+        }
+
+        .calc-row.total {
+            border-top: 1.5px solid #cbd5e1;
+            padding-top: 10px;
+            margin-top: 4px;
+            font-size: 1.05rem;
+            font-weight: 850;
+            color: var(--navy);
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'product_list' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Overview</a>
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link" href="{% url 'product_list' %}"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+            <p class="nav-label">Revenue</p>
+            <a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link active" href="{% url 'quotation_list' %}" aria-current="page"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+        </nav>
+        <div class="account">
+            <span class="avatar" aria-hidden="true">AD</span>
+            <span><strong>Admin User</strong><small>Administrator</small></span>
+            <button class="more-button" type="button" aria-label="Account options">•••</button>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation" aria-expanded="false">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'product_list' %}">Revenue</a>
+                <span>/</span>
+                <a href="{% url 'quotation_list' %}">Quotations</a>
+                <span>/</span>
+                <strong>New quotation</strong>
+            </nav>
+            <div class="topbar-actions">
+                <button class="utility-button" type="button" aria-label="Help">?</button>
+                <button class="utility-button" type="button" aria-label="Notifications">♧<span class="notification-dot"></span></button>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <section class="page-intro" aria-labelledby="page-title">
+                <div>
+                    <a class="back-link" href="{% url 'quotation_list' %}">← Back to quotations</a>
+                    <h1 id="page-title">Create quotation</h1>
+                    <p>Prepare a commercial proposal using predefined templates or custom product and plan lines (FR-19, FR-20, FR-21).</p>
+                </div>
+                <span class="requirement-chip">FR-20 · Quotation generation</span>
+            </section>
+
+            {% if errors.general %}
+                <div class="alert-danger" role="alert" style="margin-bottom:20px;">
+                    <span aria-hidden="true">!</span> {{ errors.general }}
+                </div>
+            {% endif %}
+
+            <form id="quotationForm" method="post" action="{% url 'quotation_create' %}" novalidate>
+                {% csrf_token %}
+                <div class="workspace-grid">
+                    <div class="form-stack">
+
+                        <!-- Section 1: Customer & Proposal Settings -->
+                        <section class="form-card" aria-labelledby="heading-header">
+                            <div class="card-heading">
+                                <div class="heading-icon" aria-hidden="true">♙</div>
+                                <div>
+                                    <h2 id="heading-header">Customer & Validity Information</h2>
+                                    <p>Select the recipient customer and set proposal expiration dates (FR-21).</p>
+                                </div>
+                            </div>
+
+                            <div class="required-notice"><span aria-hidden="true">*</span> Required information</div>
+
+                            <div class="form-grid">
+                                <!-- Customer Select -->
+                                <div class="field{% if errors.customer_id %} is-invalid{% endif %}">
+                                    <label for="customerSelect">Customer / Recipient <em>*</em></label>
+                                    <select id="customerSelect" name="customer_id" required>
+                                        <option value="">Select a customer</option>
+                                        {% for cust in customers %}
+                                            <option value="{{ cust.id }}" data-email="{{ cust.user.email }}" data-company="{{ cust.company_name|default:'' }}"{% if posted.customer_id == cust.id|stringformat:"s" %} selected{% endif %}>
+                                                {{ cust.user.first_name|default:cust.user.username }} ({{ cust.user.email }}){% if cust.company_name %} - {{ cust.company_name }}{% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <p class="field-error">{{ errors.customer_id|default:'' }}</p>
+                                </div>
+
+                                <!-- Predefined Template (FR-19, FR-20) -->
+                                <div class="field">
+                                    <div class="label-row">
+                                        <label for="templateSelect">Quotation template</label>
+                                        <span>FR-19 Optional</span>
+                                    </div>
+                                    <select id="templateSelect" name="template_id">
+                                        <option value="">Custom Quotation (No template)</option>
+                                        {% for tmpl in templates %}
+                                            <option value="{{ tmpl.id }}"{% if posted.template_id == tmpl.id|stringformat:"s" %} selected{% endif %}>
+                                                {{ tmpl.name }} ({{ tmpl.items.count }} item{{ tmpl.items.count|pluralize }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <p class="field-hint">Loads predefined products and subscription plans automatically.</p>
+                                </div>
+
+                                <!-- Quotation Date -->
+                                <div class="field">
+                                    <label for="quoteDate">Proposal date <em>*</em></label>
+                                    <input type="date" id="quoteDate" name="quotation_date" value="{{ posted.quotation_date|default:today }}">
+                                </div>
+
+                                <!-- Validity Window (FR-21) -->
+                                <div class="field{% if errors.valid_until %} is-invalid{% endif %}">
+                                    <label for="validUntil">Valid until date <em>*</em></label>
+                                    <input type="date" id="validUntil" name="valid_until" value="{% if posted.valid_until %}{{ posted.valid_until }}{% elif default_validity %}{{ default_validity }}{% else %}{% now 'Y-m-d' %}{% endif %}">
+                                    <p class="field-hint">Proposal expiration date after which conversion is closed.</p>
+                                    <p class="field-error">{{ errors.valid_until|default:'' }}</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section 2: Line Items -->
+                        <section class="form-card" aria-labelledby="heading-lines">
+                            <div class="card-heading">
+                                <div class="heading-icon heading-icon-violet" aria-hidden="true">▱</div>
+                                <div>
+                                    <h2 id="heading-lines">Commercial Products & Plans</h2>
+                                    <p>Configure subscription plans, products, quantities, and agreed rates for this proposal.</p>
+                                </div>
+                            </div>
+
+                            {% if errors.lines %}
+                                <div class="alert-danger" style="margin-top:14px;">
+                                    <span aria-hidden="true">!</span> {{ errors.lines }}
+                                </div>
+                            {% endif %}
+
+                            <div style="overflow-x:auto;">
+                                <table class="lines-table" id="linesTable">
+                                    <thead>
+                                        <tr>
+                                            <th style="min-width:200px;">Product / Service <em>*</em></th>
+                                            <th style="min-width:160px;">Subscription Plan</th>
+                                            <th style="min-width:140px;">Variant</th>
+                                            <th style="width:80px;">Qty <em>*</em></th>
+                                            <th style="width:120px;">Unit Rate (₹) <em>*</em></th>
+                                            <th style="width:110px;">Total (₹)</th>
+                                            <th style="width:40px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="linesTableBody">
+                                        <!-- Default Line Item Row -->
+                                        <tr class="line-row">
+                                            <td>
+                                                <select name="line_product_id" class="line-select product-picker" required onchange="onProductSelectChange(this)">
+                                                    <option value="">Choose product</option>
+                                                    {% for prod in products %}
+                                                        <option value="{{ prod.id }}" data-price="{{ prod.sales_price }}">
+                                                            {{ prod.name }} (₹{{ prod.sales_price }})
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select name="line_plan_id" class="line-select plan-picker" onchange="onPlanSelectChange(this)">
+                                                    <option value="">None / Standalone</option>
+                                                    {% for plan in plans %}
+                                                        <option value="{{ plan.id }}" data-prod="{{ plan.product_id }}" data-price="{{ plan.price }}">
+                                                            {{ plan.name }} (₹{{ plan.price }}/{{ plan.billing_frequency }})
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select name="line_variant_id" class="line-select variant-picker" onchange="onVariantSelectChange(this)">
+                                                    <option value="">Default edition</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="number" name="line_quantity" class="line-input line-qty" min="1" value="1" oninput="calculateLiveTotals()">
+                                            </td>
+                                            <td>
+                                                <input type="number" name="line_unit_price" class="line-input line-price" min="0" step="0.01" value="0.00" oninput="calculateLiveTotals()">
+                                            </td>
+                                            <td>
+                                                <strong class="line-row-total" style="color:var(--navy); font-size:0.85rem;">₹0.00</strong>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn-remove-line" onclick="removeLineRow(this)" title="Remove row">✕</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <button type="button" class="btn-add-line" onclick="addNewLineRow()">
+                                <span aria-hidden="true">+</span> Add Another Line Item
+                            </button>
+
+                            <!-- Live Calculation Summary -->
+                            <div class="calculation-card">
+                                <div class="calc-row">
+                                    <span>Line Subtotal:</span>
+                                    <strong id="calcSubtotal">₹0.00</strong>
+                                </div>
+                                <div class="calc-row">
+                                    <span>Applicable GST (18%):</span>
+                                    <span id="calcTax">₹0.00</span>
+                                </div>
+                                <div class="calc-row total">
+                                    <span>Total Quotation Value:</span>
+                                    <span id="calcTotal" style="color:var(--blue);">₹0.00</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section 3: Notes & Terms -->
+                        <section class="form-card">
+                            <div class="field field-full">
+                                <label for="quoteNotes">Commercial terms & conditions</label>
+                                <textarea id="quoteNotes" name="notes" rows="3" placeholder="e.g. Payment terms Net 30. Delivery within 5 business days upon agreement signing.">{{ posted.notes|default:'Standard payment terms Net 30. Quotation is valid for 30 calendar days from issue date.' }}</textarea>
+                            </div>
+                        </section>
+
+                        <div class="form-actions">
+                            <p><span>●</span> Quotation remains in <strong>Draft</strong> until marked as Sent or Accepted.</p>
+                            <div>
+                                <a class="button button-secondary" href="{% url 'quotation_list' %}">Cancel</a>
+                                <button class="button button-primary" type="submit">Generate proposal</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sticky Preview Card -->
+                    <aside class="preview-card" aria-label="Quotation preview">
+                        <div class="preview-header">
+                            <p>Proposal Preview</p>
+                            <span>Draft</span>
+                        </div>
+
+                        <div class="product-preview">
+                            <div class="product-glyph" aria-hidden="true">▱</div>
+                            <div>
+                                <h2 id="previewCustomerName">No customer selected</h2>
+                                <p id="previewCustomerEmail">Select a customer above</p>
+                            </div>
+                        </div>
+
+                        <div class="price-list">
+                            <div>
+                                <dt>Quotation Total</dt>
+                                <dd id="previewTotalAmount">₹0.00</dd>
+                            </div>
+                            <div>
+                                <dt>Tax Breakdown</dt>
+                                <dd id="previewTaxAmount" style="font-size:0.75rem; color:var(--slate);">GST 18%: ₹0.00</dd>
+                            </div>
+                            <div>
+                                <dt>Line Items</dt>
+                                <dd id="previewItemsCount">1 item</dd>
+                            </div>
+                            <div>
+                                <dt>Validity Period</dt>
+                                <dd id="previewValidDate" style="font-size:0.72rem; text-align:right;">30 days</dd>
+                            </div>
+                        </div>
+
+                        <div class="status-note">
+                            <span aria-hidden="true">✓</span>
+                            <p>Once accepted, this quotation can be converted into an ongoing subscription with one click (FR-22).</p>
+                        </div>
+                    </aside>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- Product Variants Mapping JSON for dynamic dropdowns -->
+    <script id="productVariantsData" type="application/json">
+        {
+            {% for prod in products %}
+                "{{ prod.id }}": [
+                    {% for v in prod.variants.all %}
+                        {"id": "{{ v.id }}", "name": "{{ v.name|escapejs }}", "additional_price": "{{ v.additional_price }}", "sales_price": "{{ v.sales_price }}"}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        }
+    </script>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const menuButton = document.getElementById('menuButton');
+        if (menuButton && sidebar) {
+            menuButton.addEventListener('click', () => {
+                const open = sidebar.classList.toggle('open');
+                menuButton.setAttribute('aria-expanded', String(open));
+            });
+        }
+
+        const variantsData = JSON.parse(document.getElementById('productVariantsData').textContent);
+
+        function onProductSelectChange(prodSelect) {
+            const row = prodSelect.closest('tr');
+            const prodId = prodSelect.value;
+            const priceInput = row.querySelector('.line-price');
+            const variantSelect = row.querySelector('.variant-picker');
+            const planSelect = row.querySelector('.plan-picker');
+
+            const selectedOption = prodSelect.options[prodSelect.selectedIndex];
+            if (selectedOption && selectedOption.dataset.price) {
+                priceInput.value = selectedOption.dataset.price;
+            }
+
+            // Populate variants
+            variantSelect.innerHTML = '<option value="">Default edition</option>';
+            if (prodId && variantsData[prodId]) {
+                variantsData[prodId].forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.id;
+                    opt.textContent = `${v.name} (+₹${v.additional_price})`;
+                    opt.dataset.finalPrice = v.sales_price;
+                    variantSelect.appendChild(opt);
+                });
+            }
+
+            calculateLiveTotals();
+        }
+
+        function onPlanSelectChange(planSelect) {
+            const row = planSelect.closest('tr');
+            const selected = planSelect.options[planSelect.selectedIndex];
+            const priceInput = row.querySelector('.line-price');
+
+            if (selected && selected.dataset.price) {
+                priceInput.value = selected.dataset.price;
+            }
+            calculateLiveTotals();
+        }
+
+        function onVariantSelectChange(varSelect) {
+            const row = varSelect.closest('tr');
+            const selected = varSelect.options[varSelect.selectedIndex];
+            const priceInput = row.querySelector('.line-price');
+
+            if (selected && selected.dataset.finalPrice) {
+                priceInput.value = selected.dataset.finalPrice;
+            }
+            calculateLiveTotals();
+        }
+
+        function addNewLineRow() {
+            const tbody = document.getElementById('linesTableBody');
+            const firstRow = tbody.querySelector('.line-row');
+            const newRow = firstRow.cloneNode(true);
+
+            newRow.querySelector('.product-picker').selectedIndex = 0;
+            newRow.querySelector('.plan-picker').selectedIndex = 0;
+            newRow.querySelector('.variant-picker').innerHTML = '<option value="">Default edition</option>';
+            newRow.querySelector('.line-qty').value = 1;
+            newRow.querySelector('.line-price').value = '0.00';
+            newRow.querySelector('.line-row-total').textContent = '₹0.00';
+
+            tbody.appendChild(newRow);
+            calculateLiveTotals();
+        }
+
+        function removeLineRow(btn) {
+            const tbody = document.getElementById('linesTableBody');
+            const rows = tbody.querySelectorAll('.line-row');
+            if (rows.length > 1) {
+                btn.closest('tr').remove();
+                calculateLiveTotals();
+            } else {
+                alert('A quotation must contain at least one line item.');
+            }
+        }
+
+        function calculateLiveTotals() {
+            let subtotal = 0;
+            const rows = document.querySelectorAll('#linesTableBody .line-row');
+
+            rows.forEach(r => {
+                const qty = parseInt(r.querySelector('.line-qty').value) || 0;
+                const price = parseFloat(r.querySelector('.line-price').value) || 0;
+                const rowTotal = qty * price;
+                r.querySelector('.line-row-total').textContent = `₹${rowTotal.toFixed(2)}`;
+                subtotal += rowTotal;
+            });
+
+            const tax = subtotal * 0.18;
+            const total = subtotal + tax;
+
+            document.getElementById('calcSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('calcTax').textContent = `₹${tax.toFixed(2)}`;
+            document.getElementById('calcTotal').textContent = `₹${total.toFixed(2)}`;
+
+            document.getElementById('previewTotalAmount').textContent = `₹${total.toFixed(2)}`;
+            document.getElementById('previewTaxAmount').textContent = `GST 18%: ₹${tax.toFixed(2)}`;
+            document.getElementById('previewItemsCount').textContent = `${rows.length} item${rows.length > 1 ? 's' : ''}`;
+        }
+
+        // Customer select change
+        const customerSelect = document.getElementById('customerSelect');
+        const previewCustomerName = document.getElementById('previewCustomerName');
+        const previewCustomerEmail = document.getElementById('previewCustomerEmail');
+
+        if (customerSelect) {
+            customerSelect.addEventListener('change', () => {
+                const opt = customerSelect.options[customerSelect.selectedIndex];
+                if (opt && opt.value) {
+                    previewCustomerName.textContent = opt.textContent.split('(')[0].trim();
+                    previewCustomerEmail.textContent = opt.dataset.email || '';
+                } else {
+                    previewCustomerName.textContent = 'No customer selected';
+                    previewCustomerEmail.textContent = 'Select a customer above';
+                }
+            });
+        }
+
+        // Template Auto-fill (FR-19, FR-20)
+        const templateSelect = document.getElementById('templateSelect');
+        if (templateSelect) {
+            templateSelect.addEventListener('change', () => {
+                const tmplId = templateSelect.value;
+                if (!tmplId) return;
+
+                fetch(`/quotations/template/api/${tmplId}/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.items && data.items.length > 0) {
+                            const tbody = document.getElementById('linesTableBody');
+                            tbody.innerHTML = '';
+
+                            data.items.forEach(it => {
+                                addNewLineRow();
+                                const row = tbody.lastElementChild;
+                                const prodSelect = row.querySelector('.product-picker');
+                                prodSelect.value = it.product_id;
+                                onProductSelectChange(prodSelect);
+
+                                if (it.plan_id) {
+                                    row.querySelector('.plan-picker').value = it.plan_id;
+                                }
+                                if (it.variant_id) {
+                                    row.querySelector('.variant-picker').value = it.variant_id;
+                                }
+                                row.querySelector('.line-qty').value = it.quantity;
+                                row.querySelector('.line-price').value = it.unit_price;
+                            });
+                            calculateLiveTotals();
+                        }
+                    })
+                    .catch(err => console.error('Failed to load template lines:', err));
+            });
+        }
+
+        // Date validity change
+        const validUntil = document.getElementById('validUntil');
+        const previewValidDate = document.getElementById('previewValidDate');
+        if (validUntil && previewValidDate) {
+            validUntil.addEventListener('change', () => {
+                previewValidDate.textContent = validUntil.value ? `Until ${validUntil.value}` : '30 days';
+            });
+        }
+
+        calculateLiveTotals();
+    </script>
+</body>
+</html>

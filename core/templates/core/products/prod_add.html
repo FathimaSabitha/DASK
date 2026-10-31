@@ -1,0 +1,128 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Create a product in the Brightloop catalogue." />
+    <title>Create product | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}" />
+    <script src="{% static 'core/products/product-creation.js' %}" defer></script>
+  </head>
+  <body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="{% url 'product_list' %}" aria-label="Brightloop home"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>Brightloop<small>Subscription management</small></span></a>
+      <nav class="navigation">
+        <p class="nav-label">Workspace</p><a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Overview</a>
+        <p class="nav-label">Catalogue</p><a class="nav-link active" href="{% url 'product_list' %}" aria-current="page"><span class="nav-icon">□</span>Products</a><a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+        <p class="nav-label">Revenue</p><a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a><a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a><a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+      </nav>
+      <div class="account"><span class="avatar" aria-hidden="true">AD</span><span><strong>Admin User</strong><small>Administrator</small></span><button class="more-button" type="button" aria-label="Account options">•••</button></div>
+    </aside>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation" aria-expanded="false">☰</button>
+        <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{% url 'product_list' %}">Catalogue</a><span>/</span><a href="{% url 'product_list' %}">Products</a><span>/</span><strong>New product</strong></nav>
+        <div class="topbar-actions"><button class="utility-button" type="button" aria-label="Help">?</button><button class="utility-button" type="button" aria-label="Notifications">♧<span class="notification-dot"></span></button></div>
+      </header>
+
+      <main class="page-content">
+        <section class="page-intro" aria-labelledby="page-title">
+          <div><a class="back-link" href="{% url 'product_list' %}">← Back to products</a><h1 id="page-title">Create a product</h1><p>Add an item to your catalogue. It will be ready to use in subscription plans, quotations and subscription line items.</p></div>
+          <span class="requirement-chip">FR-08 · Product creation</span>
+        </section>
+
+        <form id="productForm" method="post" action="{% url 'product_create' %}" novalidate>
+          {% csrf_token %}
+          <div class="workspace-grid">
+            <div class="form-stack">
+            <section class="form-card" aria-labelledby="details-heading">
+              <div class="card-heading"><div class="heading-icon" aria-hidden="true">□</div><div><h2 id="details-heading">Product details</h2><p>Use clear names and pricing so your team can find this product quickly.</p></div></div>
+              <div class="required-notice"><span aria-hidden="true">*</span> Required information</div>
+              <div class="form-grid">
+                <div class="field field-full{% if errors.productName %} is-invalid{% endif %}">
+                  <div class="label-row"><label for="productName">Product name <em>*</em></label><span id="nameCount">0 / 80</span></div>
+                  <input id="productName" name="productName" type="text" maxlength="80" placeholder="e.g. Brightloop Payroll" autocomplete="off" value="{{ posted.productName|default:'' }}" aria-describedby="productNameError" />
+                  <p class="field-error" id="productNameError">{{ errors.productName|default:'' }}</p>
+                </div>
+                <div class="field{% if errors.productType %} is-invalid{% endif %}">
+                  <label for="productType">Product type <em>*</em></label>
+                  <select id="productType" name="productType" aria-describedby="productTypeError">
+                    <option value="">Select a product type</option>
+                    <option value="Software"{% if posted.productType == 'Software' %} selected{% endif %}>Software</option>
+                    <option value="SaaS / Cloud Service"{% if posted.productType == 'SaaS / Cloud Service' %} selected{% endif %}>SaaS / Cloud Service</option>
+                    <option value="Subscription / License"{% if posted.productType == 'Subscription / License' %} selected{% endif %}>Subscription / License</option>
+                    <option value="Service"{% if posted.productType == 'Service' %} selected{% endif %}>Service</option>
+                    <option value="Professional Services"{% if posted.productType == 'Professional Services' %} selected{% endif %}>Professional Services</option>
+                    <option value="Maintenance & Support"{% if posted.productType == 'Maintenance & Support' %} selected{% endif %}>Maintenance & Support</option>
+                    <option value="Training & Onboarding"{% if posted.productType == 'Training & Onboarding' %} selected{% endif %}>Training & Onboarding</option>
+                    <option value="Add-on / Extension"{% if posted.productType == 'Add-on / Extension' %} selected{% endif %}>Add-on / Extension</option>
+                    <option value="Bundle / Package"{% if posted.productType == 'Bundle / Package' %} selected{% endif %}>Bundle / Package</option>
+                    <option value="Hardware / Device"{% if posted.productType == 'Hardware / Device' %} selected{% endif %}>Hardware / Device</option>
+                    <option value="Usage-based / Metered"{% if posted.productType == 'Usage-based / Metered' %} selected{% endif %}>Usage-based / Metered</option>
+                    <option value="Digital Goods"{% if posted.productType == 'Digital Goods' %} selected{% endif %}>Digital Goods</option>
+                    <option value="Other"{% if posted.productType == 'Other' %} selected{% endif %}>Other</option>
+                  </select>
+                  <div class="custom-type-container{% if errors.customProductType %} is-invalid{% endif %}" id="customTypeContainer"{% if posted.productType != 'Other' %} hidden{% endif %}>
+                    <label for="customProductType" class="custom-type-label">Specify product type <em>*</em></label>
+                    <input id="customProductType" name="customProductType" type="text" maxlength="50" placeholder="e.g. Consultation, Custom API, Hardware kit" autocomplete="off" value="{{ posted.customProductType|default:'' }}" aria-describedby="customProductTypeError" />
+                    <p class="field-error" id="customProductTypeError">{{ errors.customProductType|default:'' }}</p>
+                  </div>
+                  <p class="field-error" id="productTypeError">{{ errors.productType|default:'' }}</p>
+                </div>
+                <div class="field{% if errors.salesPrice %} is-invalid{% endif %}">
+                  <label for="salesPrice">Sales price <em>*</em></label>
+                  <div class="currency-input"><span aria-hidden="true">₹</span><input id="salesPrice" name="salesPrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="{{ posted.salesPrice|default:'' }}" aria-describedby="salesPriceHint salesPriceError" /></div>
+                  <p class="field-hint" id="salesPriceHint">Base price charged to the customer.</p>
+                  <p class="field-error" id="salesPriceError">{{ errors.salesPrice|default:'' }}</p>
+                </div>
+                <div class="field{% if errors.costPrice %} is-invalid{% endif %}">
+                  <label for="costPrice">Cost price <em>*</em></label>
+                  <div class="currency-input"><span aria-hidden="true">₹</span><input id="costPrice" name="costPrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="{{ posted.costPrice|default:'' }}" aria-describedby="costPriceHint costPriceError" /></div>
+                  <p class="field-hint" id="costPriceHint">Internal cost to deliver this product.</p>
+                  <p class="field-error" id="costPriceError">{{ errors.costPrice|default:'' }}</p>
+                </div>
+                <div class="field field-full{% if errors.productNotes %} is-invalid{% endif %}">
+                  <div class="label-row"><label for="productNotes">Product notes <em>*</em></label><span id="notesCount">0 / 500</span></div>
+                  <textarea id="productNotes" name="productNotes" rows="5" maxlength="500" placeholder="Describe the product, its features or any information your team will need." aria-describedby="productNotesError">{{ posted.productNotes|default:'' }}</textarea>
+                  <p class="field-error" id="productNotesError">{{ errors.productNotes|default:'' }}</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-card variants-card" aria-labelledby="variants-heading">
+              <div class="card-heading"><div class="heading-icon heading-icon-violet" aria-hidden="true">◇</div><div><h2 id="variants-heading">Product variants</h2><p>Create optional brands or configurations. Each variant belongs to this product and can carry an extra charge.</p></div><span class="optional-label">Optional</span></div>
+              <div class="variant-guide"><span class="guide-number">1</span><p><strong>Select a brand</strong> or enter your own variant name. <span class="guide-arrow">→</span> <strong>Set an extra price</strong>. Brightloop adds it to the base sales price automatically.</p></div>
+              <div class="brand-picker" aria-label="Quick add a branded variant">
+                <p class="picker-label">Quick add a brand</p>
+                <div class="brand-options">
+                  <button class="brand-option odoo" type="button" data-brand="Odoo" data-price="560"><span class="brand-logo">odoo</span><span>Odoo</span><small>+ ₹560</small></button>
+                  <button class="brand-option tally" type="button" data-brand="TallyPrime" data-price="0"><span class="brand-logo">T</span><span>TallyPrime</span><small>+ ₹0</small></button>
+                  <button class="brand-option zoho" type="button" data-brand="Zoho Books" data-price="250"><span class="brand-logo">Z</span><span>Zoho Books</span><small>+ ₹250</small></button>
+                  <button class="brand-option custom" type="button" data-brand="Custom configuration" data-price="0"><span class="brand-logo">+</span><span>Custom</span><small>Choose details</small></button>
+                </div>
+              </div>
+              <div class="variant-list" id="variantList" aria-live="polite">
+                <div class="empty-variants" id="variantEmpty"><span aria-hidden="true">◇</span><div><strong>No variants yet</strong><p>Use a quick-add logo above or create a custom configuration below.</p></div></div>
+              </div>
+              <p class="field-error" id="variantListError" style="{% if errors.variants %}display:block;margin-top:10px;{% endif %}">{{ errors.variants|default:'' }}</p>
+              <button class="add-variant" type="button" id="addVariantButton"><span aria-hidden="true">+</span> Add a custom variant</button>
+            </section>
+            </div>
+
+            <aside class="preview-card" aria-labelledby="preview-heading">
+              <div class="preview-header"><p>Live preview</p><span>Draft</span></div>
+              <div class="product-preview"><div class="product-glyph" aria-hidden="true">□</div><div><h2 id="preview-heading" data-preview="name">Untitled product</h2><p data-preview="type">Product type</p></div></div>
+              <dl class="price-list"><div><dt>Base sales price</dt><dd data-preview="salesPrice">₹0.00</dd></div><div><dt>Cost price</dt><dd data-preview="costPrice">₹0.00</dd></div></dl>
+              <div class="variant-total"><p>Selected variant price</p><strong data-preview="variantPrice">₹0.00</strong><small id="variantPriceLabel">Add a variant to see its calculated selling price.</small></div>
+              <div class="status-note"><span aria-hidden="true">✓</span><p>Saved variants stay connected to this product and are ready for plans, quotations and subscriptions.</p></div>
+            </aside>
+          </div>
+          <footer class="form-actions"><p><span aria-hidden="true">●</span> Your changes are saved when you select <strong>Save product</strong>.</p><div><button class="button button-secondary" type="button" id="cancelButton">Cancel</button><button class="button button-primary" type="submit" id="saveButton"><span aria-hidden="true">+</span> Save product</button></div></footer>
+        </form>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastIcon" aria-hidden="true">✓</span><p id="toastMessage"></p></div>
+  </body>
+</html>

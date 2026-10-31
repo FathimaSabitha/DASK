@@ -1,0 +1,384 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <style>
+        .dash-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 26px;
+            flex-wrap: wrap;
+        }
+        .dash-header h1 {
+            margin: 0;
+            font-size: clamp(1.75rem, 3vw, 2.15rem);
+            letter-spacing: -.035em;
+            color: var(--navy);
+        }
+        .dash-header p {
+            color: var(--slate);
+            margin: 6px 0 0;
+            font-size: .9rem;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .metric-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+        .metric-label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--slate);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .metric-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--navy);
+            line-height: 1.1;
+        }
+        .metric-sub {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .metric-highlight {
+            color: #2563eb;
+        }
+        .metric-warning {
+            color: #dc2626;
+        }
+        .metric-success {
+            color: #16a34a;
+        }
+        .section-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            gap: 12px;
+        }
+        .section-header h2 {
+            margin: 0;
+            font-size: 1.15rem;
+            color: var(--navy);
+            font-weight: 750;
+        }
+        .dash-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .dash-table th, .dash-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        .dash-table th {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--slate);
+            background: #fbfcfe;
+            font-weight: 750;
+        }
+        .dash-table tr:hover td {
+            background: #f8fafc;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+        .status-badge.active { background: #dcfce7; color: #15803d; }
+        .status-badge.draft { background: #f1f5f9; color: #475569; }
+        .status-badge.confirmed { background: #eff6ff; color: #1d4ed8; }
+        .status-badge.paid { background: #dcfce7; color: #15803d; }
+        .status-badge.overdue { background: #fee2e2; color: #b91c1c; }
+        .status-badge.closed { background: #fee2e2; color: #991b1b; }
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .btn-quick {
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            color: var(--navy);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 650;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-quick:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'home' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link active" href="{% url 'admin_dashboard' %}"><span class="nav-icon">⌂</span>Dashboard</a>
+            
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link" href="{% url 'product_list' %}"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+
+            <p class="nav-label">Sales & Operations</p>
+            <a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+
+            <p class="nav-label">Billing</p>
+            <a class="nav-link" href="{% url 'invoice_list' %}"><span class="nav-icon">▤</span>Invoices</a>
+            <a class="nav-link" href="{% url 'payment_list' %}"><span class="nav-icon">◈</span>Payments</a>
+
+            <p class="nav-label">Administration</p>
+            <a class="nav-link" href="{% url 'tax_rule_list' %}"><span class="nav-icon">%</span>Tax Rules</a>
+            <a class="nav-link" href="{% url 'discount_rule_list' %}"><span class="nav-icon">✂</span>Discount Rules</a>
+            <a class="nav-link" href="{% url 'create_staff' %}"><span class="nav-icon">👥</span>Staff Accounts</a>
+
+            <p class="nav-label">Analytics</p>
+            <a class="nav-link" href="{% url 'reports' %}"><span class="nav-icon">📊</span>Reports & Analytics</a>
+        </nav>
+        <div class="account" style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="avatar" aria-hidden="true">{{ request.user.first_name|default:request.user.username|slice:":2"|upper }}</span>
+                <span>
+                    <strong>{{ request.user.first_name|default:request.user.username }}</strong>
+                    <small style="display:block; color:var(--slate); font-size:0.75rem;">Administrator</small>
+                </span>
+            </div>
+            <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" title="Logout" style="background:none; border:none; cursor:pointer; color:var(--slate); font-size:1.1rem; padding:4px;">🚪</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'home' %}">Overview</a>
+                <span>/</span>
+                <strong>Admin Dashboard</strong>
+            </nav>
+            <div class="topbar-actions">
+                <a href="{% url 'reports' %}" class="button button-secondary" style="font-size:0.8rem; padding:6px 12px;">📊 Reports</a>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <div class="dash-header">
+                <div>
+                    <h1>Executive Dashboard</h1>
+                    <p>Overview of subscription health, revenue metrics, recurring billing, and pending operations.</p>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <a href="{% url 'quotation_create' %}" class="btn-quick"><span>＋</span> New Quotation</a>
+                <a href="{% url 'product_create' %}" class="btn-quick"><span>＋</span> New Product</a>
+                <a href="{% url 'plan_create' %}" class="btn-quick"><span>＋</span> New Plan</a>
+                <a href="{% url 'create_staff' %}" class="btn-quick"><span>＋</span> Add Staff</a>
+                <a href="{% url 'discount_rule_create' %}" class="btn-quick"><span>＋</span> New Discount Rule</a>
+            </div>
+
+            <!-- Metrics Grid (FR-43, FR-44, FR-45, FR-46, FR-47) -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-label">Monthly Recurring Revenue</span>
+                    <span class="metric-value metric-highlight">₹{{ mrr|floatformat:2 }}</span>
+                    <span class="metric-sub">Across {{ active_subscriptions }} active subscriptions</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Collections This Month</span>
+                    <span class="metric-value metric-success">₹{{ monthly_revenue|floatformat:2 }}</span>
+                    <span class="metric-sub">Recorded payments</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Active Subscriptions</span>
+                    <span class="metric-value">{{ active_subscriptions }}</span>
+                    <span class="metric-sub"><a href="{% url 'subscription_list' %}?status=active" style="color:#2563eb; text-decoration:none;">View active list →</a></span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Total Customers</span>
+                    <span class="metric-value">{{ total_customers }}</span>
+                    <span class="metric-sub"><a href="{% url 'customer_list' %}" style="color:#2563eb; text-decoration:none;">Manage accounts →</a></span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Overdue Invoices</span>
+                    <span class="metric-value metric-warning">{{ overdue_invoices }}</span>
+                    <span class="metric-sub"><a href="{% url 'invoice_list' %}?status=overdue" style="color:#dc2626; text-decoration:none;">Follow up now →</a></span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Pending Quotations</span>
+                    <span class="metric-value">{{ pending_quotations }}</span>
+                    <span class="metric-sub"><a href="{% url 'quotation_list' %}" style="color:#2563eb; text-decoration:none;">View proposals →</a></span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px;">
+                <!-- Recent Subscriptions -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Recent Subscriptions</h2>
+                        <a href="{% url 'subscription_list' %}" class="button button-secondary" style="font-size:0.75rem; padding:4px 10px;">All Subscriptions</a>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Subscription #</th>
+                                    <th>Customer</th>
+                                    <th>Plan</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sub in recent_subscriptions %}
+                                <tr>
+                                    <td><a href="{% url 'subscription_detail' sub.id %}" style="font-weight:700; color:#2563eb; text-decoration:none;">{{ sub.subscription_number }}</a></td>
+                                    <td>{{ sub.customer.name }}</td>
+                                    <td>{{ sub.plan.name|default:"Custom" }}</td>
+                                    <td>₹{{ sub.total_amount|floatformat:2 }}</td>
+                                    <td><span class="status-badge {{ sub.status }}">{{ sub.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">No subscriptions recorded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Payments -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Recent Payment Collections</h2>
+                        <a href="{% url 'payment_list' %}" class="button button-secondary" style="font-size:0.75rem; padding:4px 10px;">All Payments</a>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Invoice #</th>
+                                    <th>Customer</th>
+                                    <th>Method</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in recent_payments %}
+                                <tr>
+                                    <td>{{ p.payment_date|date:"d M Y" }}</td>
+                                    <td><a href="{% url 'invoice_detail' p.invoice.id %}" style="color:#2563eb; text-decoration:none; font-weight:600;">{{ p.invoice.invoice_number }}</a></td>
+                                    <td>{{ p.invoice.customer.name }}</td>
+                                    <td>{{ p.get_payment_method_display }}</td>
+                                    <td style="font-weight:750; color:#16a34a;">₹{{ p.amount|floatformat:2 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">No payments recorded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscriptions Expiring Soon -->
+            {% if expiring_soon %}
+            <div class="section-card" style="border-left: 4px solid #f59e0b;">
+                <div class="section-header">
+                    <h2>⚠️ Subscriptions Expiring in Next 30 Days (Action Required)</h2>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Subscription #</th>
+                                <th>Customer</th>
+                                <th>Plan</th>
+                                <th>Expiry Date</th>
+                                <th>Next Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in expiring_soon %}
+                            <tr>
+                                <td><a href="{% url 'subscription_detail' sub.id %}" style="font-weight:700; color:#2563eb; text-decoration:none;">{{ sub.subscription_number }}</a></td>
+                                <td>{{ sub.customer.name }} ({{ sub.customer.email }})</td>
+                                <td>{{ sub.plan.name|default:"Standard" }}</td>
+                                <td style="color:#d97706; font-weight:700;">{{ sub.expiry_date|date:"d M Y" }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'subscription_renew' sub.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="button button-primary" style="font-size:0.75rem; padding:4px 10px;">Renew Now</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+        </main>
+    </div>
+</body>
+</html>

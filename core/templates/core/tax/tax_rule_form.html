@@ -1,0 +1,44 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+</head>
+<body>
+    <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:#f8fafc; padding:20px;">
+        <div style="max-width:520px; width:100%; background:#ffffff; border:1px solid var(--border); border-radius:12px; padding:32px; box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+            <h1 style="color:var(--navy); font-size:1.35rem; margin:0 0 8px;">{{ title }}</h1>
+            <p style="color:var(--slate); font-size:0.85rem; margin-bottom:24px;">Configure statutory percentage rate to apply on billing invoices.</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--slate); margin-bottom:6px;">Rule Name</label>
+                    <input type="text" name="name" value="{{ form.name.value|default:'' }}" required placeholder="e.g. GST 18%, Service Tax 5%" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:0.9rem;">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--slate); margin-bottom:6px;">Tax Rate (%)</label>
+                    <input type="number" step="0.001" name="rate" value="{{ form.rate.value|default:'18.000' }}" required placeholder="18.000" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:0.9rem;">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:600; color:var(--navy); cursor:pointer;">
+                        <input type="checkbox" name="is_active" {% if form.is_active.value or not form.is_bound %}checked{% endif %}>
+                        Active Rule (auto-applied to new invoices)
+                    </label>
+                </div>
+                <div style="margin-bottom:24px;">
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--slate); margin-bottom:6px;">Description (Optional)</label>
+                    <textarea name="description" rows="3" placeholder="Notes regarding tax jurisdiction or schedule" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:0.9rem;">{{ form.description.value|default:'' }}</textarea>
+                </div>
+                <div style="display:flex; gap:12px; justify-content:flex-end;">
+                    <a href="{% url 'tax_rule_list' %}" class="button button-secondary">Cancel</a>
+                    <button type="submit" class="button button-primary">Save Tax Rule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

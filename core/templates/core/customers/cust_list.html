@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage customer records in Brightloop.">
+    <title>Customer Management | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/customer_management.css' %}">
+    <style>
+        .catalogue-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .catalogue-header h1 {
+            margin: 0;
+            font-size: clamp(1.75rem, 3vw, 2.15rem);
+            letter-spacing: -.035em;
+            color: var(--navy);
+        }
+
+        .catalogue-header p {
+            color: var(--slate);
+            margin: 8px 0 0;
+            font-size: .9rem;
+        }
+
+        .btn-view-customer {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--blue);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-view-customer:hover {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'product_list' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Overview</a>
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link" href="{% url 'product_list' %}"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+            <p class="nav-label">Revenue</p>
+            <a class="nav-link active" href="{% url 'customer_list' %}" aria-current="page"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+            {% if request.user.is_superuser or request.user.groups.all.0.name == 'Admin' %}
+            <p class="nav-label">Administration</p>
+            <a class="nav-link" href="{% url 'create_staff' %}"><span class="nav-icon">👥</span>Staff accounts</a>
+            {% endif %}
+        </nav>
+        <div class="account">
+            <span class="avatar" aria-hidden="true">{{ request.user.first_name|slice:":1"|default:request.user.username|slice:":1"|upper }}</span>
+            <span><strong>{{ request.user.first_name|default:request.user.username|default:"Staff" }}</strong><small>Internal User</small></span>
+            <a href="{% url 'logout' %}" class="more-button" title="Sign out" style="text-decoration:none; color:#94a3b8; font-size:1rem;">⎋</a>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation" aria-expanded="false">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'product_list' %}">Revenue</a>
+                <span>/</span>
+                <strong>Customers</strong>
+            </nav>
+            <div class="topbar-actions">
+                <button class="utility-button" type="button" aria-label="Help">?</button>
+                <button class="utility-button" type="button" aria-label="Notifications">♧<span class="notification-dot"></span></button>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <div class="catalogue-header">
+                <div>
+                    <h1>Customer Management</h1>
+                    <p>View and manage client profiles, contact information, and business accounts (SRS Section 3.4, FR-16 to FR-18).</p>
+                </div>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="padding:12px 16px; margin-bottom:20px; border-radius:9px; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; font-size:.82rem; font-weight:650;">
+                        ✓ {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="GET" action="{% url 'customer_list' %}" class="search-form">
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search by customer name, email, phone or company..."
+                    value="{{ search }}"
+                >
+                <button type="submit">Search</button>
+                {% if search %}
+                    <a href="{% url 'customer_list' %}" class="btn" style="background:#64748b; padding:13px 18px;">Clear</a>
+                {% endif %}
+            </form>
+
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email Address</th>
+                            <th>Customer Type</th>
+                            <th>Phone</th>
+                            <th>Company</th>
+                            <th style="text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td><strong>{{ customer.user.get_full_name|default:customer.user.username }}</strong></td>
+                            <td>{{ customer.user.email }}</td>
+                            <td><span style="font-size:0.75rem; padding:3px 8px; border-radius:999px; background:#eff6ff; color:#1d4ed8; font-weight:700;">{{ customer.get_customer_type_display }}</span></td>
+                            <td>{{ customer.phone|default:"—" }}</td>
+                            <td>{{ customer.company_name|default:"Individual" }}</td>
+                            <td style="text-align:right;">
+                                <a class="btn-view-customer" href="{% url 'customer_detail' customer.pk %}">
+                                    View Details →
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:36px; color:#64748b;">
+                                No customer records found matching your query.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const menuButton = document.getElementById('menuButton');
+        const sidebar = document.getElementById('sidebar');
+        if (menuButton && sidebar) {
+            menuButton.addEventListener('click', () => {
+                const isOpen = sidebar.classList.toggle('open');
+                menuButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        }
+    </script>
+</body>
+</html>

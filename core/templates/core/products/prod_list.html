@@ -1,0 +1,332 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View and manage products in the Brightloop catalogue.">
+    <title>Products | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <style>
+        .catalogue-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .catalogue-header h1 {
+            margin: 0;
+            font-size: clamp(1.75rem, 3vw, 2.15rem);
+            letter-spacing: -.035em;
+            color: var(--navy);
+        }
+
+        .catalogue-header p {
+            color: var(--slate);
+            margin: 8px 0 0;
+            font-size: .9rem;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .product-table th,
+        .product-table td {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: .85rem;
+            vertical-align: top;
+        }
+
+        .product-table th {
+            color: var(--slate);
+            font-size: .7rem;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            font-weight: 750;
+            background: #fbfcfe;
+        }
+
+        .product-table tr:hover td {
+            background: #fafcff;
+        }
+
+        .product-table td strong {
+            display: block;
+            color: var(--navy);
+            font-weight: 700;
+            font-size: .9rem;
+            margin-bottom: 4px;
+        }
+
+        .product-table td small {
+            color: var(--slate);
+            line-height: 1.4;
+            display: block;
+        }
+
+        .price-tag {
+            font-weight: 750;
+            color: var(--navy);
+        }
+
+        .variant-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin: 2px 4px 2px 0;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #f5f3ff;
+            color: var(--violet);
+            font-size: .72rem;
+            font-weight: 650;
+        }
+
+        .variant-tag small {
+            color: #7c3aed;
+            display: inline;
+            font-size: .68rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons .button {
+            padding: 7px 12px;
+            font-size: .75rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 7px;
+        }
+
+        .button-danger {
+            background: #fff;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            font-weight: 650;
+            cursor: pointer;
+            transition: background .16s ease;
+        }
+
+        .button-danger:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .empty-catalogue {
+            padding: 56px 24px;
+            color: var(--slate);
+            text-align: center;
+        }
+
+        .empty-catalogue strong {
+            display: block;
+            font-size: 1.05rem;
+            color: var(--slate-dark);
+            margin-bottom: 6px;
+        }
+
+        .alert-success {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 9px;
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+            font-size: .82rem;
+            font-weight: 650;
+        }
+
+        .alert-danger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 9px;
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            font-size: .82rem;
+            font-weight: 650;
+        }
+
+        @media (max-width: 720px) {
+            .catalogue-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            .product-table {
+                min-width: 820px;
+            }
+            .table-scroll {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'product_list' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Overview</a>
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link active" href="{% url 'product_list' %}" aria-current="page"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+            <p class="nav-label">Revenue</p>
+            <a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+        </nav>
+        <div class="account">
+            <span class="avatar" aria-hidden="true">AD</span>
+            <span><strong>Admin User</strong><small>Administrator</small></span>
+            <button class="more-button" type="button" aria-label="Account options">•••</button>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation" aria-expanded="false">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{% url 'product_list' %}">Catalogue</a><span>/</span><strong>Products</strong></nav>
+            <div class="topbar-actions">
+                <button class="utility-button" type="button" aria-label="Help">?</button>
+                <button class="utility-button" type="button" aria-label="Notifications">♧<span class="notification-dot"></span></button>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <div class="catalogue-header">
+                <div>
+                    <h1>Products</h1>
+                    <p>Your catalogue items are ready to use in plans, quotations and subscriptions.</p>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <a class="button button-secondary" href="{% url 'product_userlist' %}" title="Official customer-facing rate card and print view">
+                        <span aria-hidden="true">⎙</span> Customer Catalogue
+                    </a>
+                    {% if user_is_admin %}
+                        <a class="button button-primary" href="{% url 'product_create' %}">
+                            <span aria-hidden="true">+</span> Create product
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}" role="{% if message.tags == 'error' %}alert{% else %}status{% endif %}">
+                        <span aria-hidden="true">{% if message.tags == 'error' %}!{% else %}✓{% endif %}</span>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <section class="form-card" style="padding:0; overflow:hidden;">
+                {% if products %}
+                    <div class="table-scroll">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th style="min-width:240px;">Product</th>
+                                    <th style="min-width:140px;">Type</th>
+                                    <th style="min-width:110px;">Sales price</th>
+                                    <th style="min-width:110px;">Cost price</th>
+                                    <th style="min-width:260px;">Variants</th>
+                                    {% if user_is_admin %}
+                                        <th style="min-width:170px;">Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ product.name }}</strong>
+                                            <small>{{ product.notes }}</small>
+                                        </td>
+                                        <td>{{ product.product_type }}</td>
+                                        <td class="price-tag">₹{{ product.sales_price }}</td>
+                                        <td class="price-tag">₹{{ product.cost_price }}</td>
+                                        <td>
+                                            {% if product.variants.all %}
+                                                <div>
+                                                    {% for variant in product.variants.all %}
+                                                        <span class="variant-tag">
+                                                            {{ variant.name }}
+                                                            <small>(+₹{{ variant.additional_price }})</small>
+                                                        </span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <small style="color:var(--muted); font-style:italic;">No variants configured</small>
+                                            {% endif %}
+                                        </td>
+                                        {% if user_is_admin %}
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <a class="button button-secondary" href="{% url 'product_edit' product.id %}">
+                                                        Edit
+                                                    </a>
+                                                    <form method="POST" action="{% url 'product_delete' product.id %}" onsubmit="return confirm('Are you sure you want to delete {{ product.name|escapejs }} and its variants?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="button button-danger">
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-catalogue">
+                        <strong>No products yet</strong>
+                        <p>Create your first product to start building the catalogue.</p>
+                        {% if user_is_admin %}
+                            <div style="margin-top:16px;">
+                                <a class="button button-primary" href="{% url 'product_create' %}">
+                                    <span aria-hidden="true">+</span> Create product
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const menuButton = document.getElementById('menuButton');
+        if (menuButton && sidebar) {
+            menuButton.addEventListener('click', () => {
+                const open = sidebar.classList.toggle('open');
+                menuButton.setAttribute('aria-expanded', String(open));
+            });
+        }
+    </script>
+</body>
+</html>

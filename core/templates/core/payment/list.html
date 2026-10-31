@@ -1,0 +1,178 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment History | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+    <style>
+        .catalogue-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .catalogue-header h1 {
+            margin: 0;
+            font-size: clamp(1.75rem, 3vw, 2.15rem);
+            letter-spacing: -.035em;
+            color: var(--navy);
+        }
+        .catalogue-header p {
+            color: var(--slate);
+            margin: 6px 0 0;
+            font-size: .9rem;
+        }
+        .pay-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .pay-table th, .pay-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        .pay-table th {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--slate);
+            background: #fbfcfe;
+            font-weight: 750;
+        }
+        .pay-table tr:hover td {
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="{% url 'home' %}" aria-label="Brightloop home">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>Brightloop<small>Subscription management</small></span>
+        </a>
+        <nav class="navigation">
+            <p class="nav-label">Workspace</p>
+            <a class="nav-link" href="{% url 'home' %}"><span class="nav-icon">⌂</span>Dashboard</a>
+            
+            {% if is_staff %}
+            <p class="nav-label">Catalogue</p>
+            <a class="nav-link" href="{% url 'product_list' %}"><span class="nav-icon">□</span>Products</a>
+            <a class="nav-link" href="{% url 'plan_list' %}"><span class="nav-icon">▤</span>Subscription plans</a>
+
+            <p class="nav-label">Sales & Operations</p>
+            <a class="nav-link" href="{% url 'customer_list' %}"><span class="nav-icon">♙</span>Customers</a>
+            <a class="nav-link" href="{% url 'quotation_list' %}"><span class="nav-icon">▱</span>Quotations</a>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>Subscriptions</a>
+
+            <p class="nav-label">Billing</p>
+            <a class="nav-link" href="{% url 'invoice_list' %}"><span class="nav-icon">▤</span>Invoices</a>
+            <a class="nav-link active" href="{% url 'payment_list' %}"><span class="nav-icon">◈</span>Payments</a>
+            <p class="nav-label">Analytics</p>
+            <a class="nav-link" href="{% url 'reports' %}"><span class="nav-icon">📊</span>Reports & Analytics</a>
+
+            {% else %}
+            <p class="nav-label">My Records</p>
+            <a class="nav-link" href="{% url 'subscription_list' %}"><span class="nav-icon">◴</span>My Subscriptions</a>
+            <a class="nav-link" href="{% url 'invoice_list' %}"><span class="nav-icon">▤</span>My Invoices</a>
+            <a class="nav-link active" href="{% url 'payment_list' %}"><span class="nav-icon">◈</span>Payment History</a>
+            {% endif %}
+        </nav>
+        <div class="account" style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="avatar" aria-hidden="true">{{ request.user.first_name|default:request.user.username|slice:":2"|upper }}</span>
+                <span>
+                    <strong>{{ request.user.first_name|default:request.user.username }}</strong>
+                    <small style="display:block; color:var(--slate); font-size:0.75rem;">
+                        {% if request.user.is_superuser %}Admin{% elif is_staff %}Staff{% else %}Customer{% endif %}
+                    </small>
+                </span>
+            </div>
+            <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" title="Logout" style="background:none; border:none; cursor:pointer; color:var(--slate); font-size:1.1rem; padding:4px;">🚪</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-shell">
+        <header class="topbar">
+            <button class="menu-button" type="button" id="menuButton" aria-label="Open navigation">☰</button>
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'home' %}">Overview</a>
+                <span>/</span>
+                <strong>Payments</strong>
+            </nav>
+            <div class="topbar-actions">
+                <a href="{% url 'invoice_list' %}" class="button button-secondary" style="font-size:0.8rem; padding:6px 12px;">🧾 View Invoices</a>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <div class="catalogue-header">
+                <div>
+                    <h1>{% if is_staff %}Payment Transactions (FR-38 to FR-42){% else %}My Payment History{% endif %}</h1>
+                    <p>Audit trail of all recorded financial settlements, transaction references, dates, and payment methods.</p>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container" style="background:#ffffff; border:1px solid var(--border); border-radius:12px; overflow-x:auto;">
+                <table class="pay-table">
+                    <thead>
+                        <tr>
+                            <th>Payment Date</th>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th>Method</th>
+                            <th>Reference #</th>
+                            <th>Recorded By</th>
+                            <th>Amount</th>
+                            <th>Invoice Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in payments %}
+                        <tr>
+                            <td>{{ p.payment_date|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'invoice_detail' p.invoice.id %}" style="font-weight:700; color:#2563eb; text-decoration:none;">
+                                    {{ p.invoice.invoice_number }}
+                                </a>
+                            </td>
+                            <td>
+                                <strong>{{ p.invoice.customer.name }}</strong>
+                                <small style="display:block; color:var(--slate);">{{ p.invoice.customer.email }}</small>
+                            </td>
+                            <td>{{ p.get_payment_method_display }}</td>
+                            <td>{{ p.reference_number|default:"—" }}</td>
+                            <td>{{ p.recorded_by.username|default:"System" }}</td>
+                            <td style="font-weight:750; color:#16a34a; font-size:0.95rem;">
+                                ₹{{ p.amount|floatformat:2 }}
+                            </td>
+                            <td>
+                                <span style="font-size:0.75rem; font-weight:700; text-transform:capitalize; padding:3px 8px; border-radius:6px; background:#dcfce7; color:#15803d;">
+                                    {{ p.invoice.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:48px; color:var(--slate);">
+                                <strong>No payments recorded yet.</strong>
+                                <p style="margin:6px 0 0; font-size:0.85rem;">Payments recorded against invoices will appear here.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

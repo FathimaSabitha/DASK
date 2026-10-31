@@ -1,0 +1,32 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel Subscription | Brightloop</title>
+    <link rel="stylesheet" href="{% static 'core/products/product-creation.css' %}">
+</head>
+<body>
+    <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:#f8fafc; padding:20px;">
+        <div style="max-width:480px; width:100%; background:#ffffff; border:1px solid var(--border); border-radius:12px; padding:32px; box-shadow:0 4px 16px rgba(0,0,0,0.06); text-align:center;">
+            <div style="font-size:2.5rem; margin-bottom:12px;">⚠️</div>
+            <h1 style="color:var(--navy); font-size:1.4rem; margin:0 0 10px;">Cancel Subscription Agreement?</h1>
+            <p style="color:var(--slate); font-size:0.9rem; line-height:1.5; margin-bottom:20px;">
+                Are you sure you want to cancel subscription <strong>{{ sub.subscription_number }}</strong>?
+                This will close the active agreement and stop future automatic invoice generation.
+            </p>
+            <div style="background:#f1f5f9; border-radius:8px; padding:12px; margin-bottom:24px; text-align:left; font-size:0.85rem;">
+                <p style="margin:4px 0;"><strong>Plan:</strong> {{ sub.plan.name|default:"Standard Plan" }}</p>
+                <p style="margin:4px 0;"><strong>Total Amount:</strong> ₹{{ sub.total_amount|floatformat:2 }}</p>
+                <p style="margin:4px 0;"><strong>Start Date:</strong> {{ sub.start_date|date:"d M Y" }}</p>
+            </div>
+            <form method="post" action="{% url 'subscription_cancel' sub.id %}" style="display:flex; gap:12px; justify-content:center;">
+                {% csrf_token %}
+                <a href="{% url 'subscription_detail' sub.id %}" class="button button-secondary" style="flex:1;">Never Mind</a>
+                <button type="submit" class="button button-danger" style="flex:1; background:#dc2626; color:#ffffff; border-color:#dc2626;">Yes, Cancel</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
